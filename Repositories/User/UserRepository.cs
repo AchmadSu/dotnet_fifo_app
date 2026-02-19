@@ -30,7 +30,6 @@ namespace FifoApi.Repositories.User
         public async Task<bool> IsExistEmailAsync(string email)
         {
             return await _context.AppUsers.AnyAsync(u => u.NormalizedEmail == email.ToUpper());
-
         }
     }
 }

@@ -154,3 +154,4 @@ C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\refint
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.pdb
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.genruntimeconfig.cache
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\ref\FifoApi.dll
+C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.sourcelink.json

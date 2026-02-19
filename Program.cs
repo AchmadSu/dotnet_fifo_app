@@ -1,11 +1,14 @@
 using System.Security.Cryptography.Xml;
 using FifoApi.Data;
+using FifoApi.DTOs;
+using FifoApi.Extensions.Controllers;
 using FifoApi.Interface.User;
 using FifoApi.Models;
 using FifoApi.Repositories.User;
 using FifoApi.Service.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -52,6 +55,31 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 });
 
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(x => x.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            var operationResult = OperationResult<object>.BadRequest(
+                "Validation failed",
+                errors
+            );
+
+            return new ObjectResult(operationResult)
+            {
+                StatusCode = (int)operationResult.StatusCode
+            };
+        };
+    });
+
+
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseNpgsql(
@@ -93,6 +121,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IRegisterService, RegisterService>();
 
 var app = builder.Build();
 

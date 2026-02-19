@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs.User;
+using FifoApi.Extensions.Controllers;
 using FifoApi.Interface.User;
 using FifoApi.Mappers.User;
 using FifoApi.Models;
@@ -17,43 +18,35 @@ namespace FifoApi.Controllers.User
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly ITokenService _tokenService;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly IUserRepository _userRepo;
+        private readonly ILoginService _loginService;
+        private readonly IRegisterService _registerService;
+        private readonly ILogger<AccountController> _logger;
+
         public AccountController(
-            UserManager<AppUser> userManager,
-            ITokenService tokenService,
-            SignInManager<AppUser> signInManager,
-            IUserRepository userRepo
+            ILoginService loginService,
+            IRegisterService registerService,
+            ILogger<AccountController> logger
         )
         {
-            _userManager = userManager;
-            _tokenService = tokenService;
-            _signInManager = signInManager;
-            _userRepo = userRepo;
+            _loginService = loginService;
+            _registerService = registerService;
+            _logger = logger;
         }
 
         [HttpPost("auth")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _loginService.LoginAsync(loginDTO);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while login {Username}", loginDTO.Username);
+                return this.ToErrorActionResult();
+            }
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(x =>
-                x.UserName.ToLower() == loginDTO.Username.ToLower()
-            );
-
-            if (user == null) return Unauthorized("Invalid username!");
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, false);
-
-            if (!result.Succeeded) return Unauthorized("Username not found and/or password incorrect");
-
-            var token = _tokenService.CreateToken(user);
-
-            return Ok(
-                user.toLoginResponse(token)
-            );
         }
 
         [HttpPost("register")]
@@ -61,37 +54,13 @@ namespace FifoApi.Controllers.User
         {
             try
             {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-
-                var existEmail = await _userRepo.IsExistEmailAsync(registerDTO.Email);
-
-                if (existEmail) return BadRequest("Email is exist, please try another email!");
-
-                var appUser = registerDTO.fromRegisterDtoToAppUser();
-
-                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password);
-                if (createdUser.Succeeded)
-                {
-                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User");
-                    if (roleResult.Succeeded)
-                    {
-                        return Ok(
-                            "User registered successfully! Please sign in!"
-                        );
-                    }
-                    else
-                    {
-                        return StatusCode(500, roleResult.Errors);
-                    }
-                }
-                else
-                {
-                    return StatusCode(500, createdUser.Errors);
-                }
+                var result = await _registerService.RegisterAsync(registerDTO);
+                return this.ToActionResult(result);
             }
             catch (Exception e)
             {
-                return StatusCode(500, e);
+                _logger.LogError(e, "Unexpected error while registering {Email}", registerDTO.Email);
+                return this.ToErrorActionResult();
             }
         }
     }

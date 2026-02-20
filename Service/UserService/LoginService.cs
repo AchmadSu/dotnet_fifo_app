@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs;
-using FifoApi.DTOs.User;
-using FifoApi.Interface.User;
-using FifoApi.Mappers.User;
+using FifoApi.DTOs.UserDTO;
+using FifoApi.Interface.UserInterface;
+using FifoApi.Mappers.UserMapper;
 using FifoApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace FifoApi.Service.User
+namespace FifoApi.Service.UserService
 {
     public class LoginService : ILoginService
     {
@@ -42,7 +42,7 @@ namespace FifoApi.Service.User
             var token = _tokenService.CreateToken(user);
 
             return OperationResult<LoginResponseDTO>.Ok(
-                user.toLoginResponse(token)
+                user.ToLoginResponse(token)
             );
         }
     }

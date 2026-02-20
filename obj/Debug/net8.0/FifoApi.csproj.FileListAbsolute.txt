@@ -155,3 +155,4 @@ C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoAp
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.genruntimeconfig.cache
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\ref\FifoApi.dll
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.sourcelink.json
+C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\AutoMapper.dll

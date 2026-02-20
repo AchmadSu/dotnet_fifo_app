@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using FifoApi.DTOs.User;
+using FifoApi.DTOs.UserDTO;
 using FifoApi.Models;
 
 namespace FifoApi.DTOs

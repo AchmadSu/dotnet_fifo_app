@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Data;
-using FifoApi.Interface.User;
+using FifoApi.Interface.UserInterface;
 using FifoApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FifoApi.Repositories.User
+namespace FifoApi.Repositories.UserRepository
 {
     public class UserRepository : IUserRepository
     {

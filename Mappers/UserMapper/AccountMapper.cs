@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FifoApi.DTOs.User;
+using FifoApi.DTOs.UserDTO;
 using FifoApi.Models;
 
-namespace FifoApi.Mappers.User
+namespace FifoApi.Mappers.UserMapper
 {
     public static class AccountMapper
     {
-        public static LoginResponseDTO toLoginResponse(this AppUser appUser, string token)
+        public static LoginResponseDTO ToLoginResponse(this AppUser appUser, string token)
         {
             return new LoginResponseDTO
             {
@@ -19,7 +19,7 @@ namespace FifoApi.Mappers.User
             };
         }
 
-        public static AppUser fromRegisterDtoToAppUser(this RegisterDTO registerDTO)
+        public static AppUser FromRegisterDtoToAppUser(this RegisterDTO registerDTO)
         {
             return new AppUser
             {

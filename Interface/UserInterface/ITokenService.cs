@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Models;
 
-namespace FifoApi.Interface.User
+namespace FifoApi.Interface.UserInterface
 {
     public interface ITokenService
     {

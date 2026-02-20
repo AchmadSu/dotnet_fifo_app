@@ -6,11 +6,11 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using FifoApi.Interface.User;
+using FifoApi.Interface.UserInterface;
 using FifoApi.Models;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FifoApi.Service.User
+namespace FifoApi.Service.UserService
 {
     public class TokenService : ITokenService
     {

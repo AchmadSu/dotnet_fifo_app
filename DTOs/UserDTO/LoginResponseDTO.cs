@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FifoApi.DTOs.User
+namespace FifoApi.DTOs.UserDTO
 {
     public class LoginResponseDTO
     {

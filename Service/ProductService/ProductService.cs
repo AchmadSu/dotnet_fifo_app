@@ -1,0 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using FifoApi.DTOs;
+using FifoApi.DTOs.ProductDTO;
+using FifoApi.Helpers.ProductHelper;
+using FifoApi.Interface.ProductInterface;
+using FifoApi.Mappers.ProductMapper;
+using FifoApi.Models;
+
+namespace FifoApi.Service.ProductService
+{
+    public class ProductService : IProductService
+    {
+        private readonly IProductRepository _productRepo;
+        private readonly ILogger<ProductService> _logger;
+        public ProductService(
+            IProductRepository productRepo,
+            ILogger<ProductService> logger
+        )
+        {
+            _productRepo = productRepo;
+            _logger = logger;
+        }
+        public async Task<OperationResult<ProductDTO>> CreateAsync(CreateProductDTO productDTO)
+        {
+            try
+            {
+                var nextSequence = await _productRepo.GetNextSkuSequenceAsync("PRD");
+
+                var sku = SkuGenerator.Generate(
+                    productName: productDTO.Name,
+                    sequenceNumber: nextSequence
+                );
+
+                var existSku = await _productRepo.IsExistSKUAsync(sku);
+                if (existSku) return OperationResult<ProductDTO>.InternalServerError("There are some issues while creating the Product data, please try again!");
+
+                var existName = await _productRepo.IsExistProductNameAsync(productDTO.Name);
+                if (existName) return OperationResult<ProductDTO>.BadRequest("Failed to create product", new string[]
+                {
+                $"{productDTO.Name} has been taken!"
+                });
+
+                var productModel = new Product
+                {
+                    SKU = sku,
+                    Name = productDTO.Name
+                };
+
+                var createdProduct = await _productRepo.CreateProductAsync(productModel);
+
+                return OperationResult<ProductDTO>.Ok(
+                    createdProduct.ToProductDTO()
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while creating product");
+                return OperationResult<ProductDTO>.InternalServerError();
+            }
+        }
+    }
+}

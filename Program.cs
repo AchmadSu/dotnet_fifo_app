@@ -2,10 +2,13 @@ using System.Security.Cryptography.Xml;
 using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
-using FifoApi.Interface.User;
+using FifoApi.Interface.ProductInterface;
+using FifoApi.Interface.UserInterface;
 using FifoApi.Models;
-using FifoApi.Repositories.User;
-using FifoApi.Service.User;
+using FifoApi.Repositories.ProductRepository;
+using FifoApi.Repositories.UserRepository;
+using FifoApi.Service.ProductService;
+using FifoApi.Service.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -123,6 +126,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IRegisterService, RegisterService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

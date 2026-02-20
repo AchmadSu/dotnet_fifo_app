@@ -17,6 +17,11 @@ namespace FifoApi.Data
         }
 
         public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Stock> StockBatches { get; set; }
+        public DbSet<Sale> Sales { get; set; }
+        public DbSet<SaleItem> SaleItems { get; set; }
+        public DbSet<StockMovement> StockMovements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

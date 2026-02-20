@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs;
-using FifoApi.DTOs.User;
-using FifoApi.Interface.User;
-using FifoApi.Mappers.User;
+using FifoApi.DTOs.UserDTO;
+using FifoApi.Interface.UserInterface;
+using FifoApi.Mappers.UserMapper;
 using FifoApi.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace FifoApi.Service.User
+namespace FifoApi.Service.UserService
 {
     public class RegisterService : IRegisterService
     {
@@ -35,7 +35,7 @@ namespace FifoApi.Service.User
                 if (existEmail)
                     return OperationResult<GlobalSuccessResponseDTO>.BadRequest("Create user failed", new string[] { "Email has been taken!" });
 
-                var appUser = registerDTO.fromRegisterDtoToAppUser();
+                var appUser = registerDTO.FromRegisterDtoToAppUser();
 
                 var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password);
 

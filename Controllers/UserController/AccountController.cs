@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FifoApi.DTOs.User;
+using FifoApi.DTOs.UserDTO;
 using FifoApi.Extensions.Controllers;
-using FifoApi.Interface.User;
-using FifoApi.Mappers.User;
+using FifoApi.Interface.UserInterface;
+using FifoApi.Mappers.UserMapper;
 using FifoApi.Models;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace FifoApi.Controllers.User
+namespace FifoApi.Controllers.UserController
 {
     [Route("api/account")]
     [ApiController]

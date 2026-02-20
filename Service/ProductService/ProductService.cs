@@ -27,26 +27,27 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
+                var productName = ProductNameHelper.CleanProductName(productDTO.Name);
                 var nextSequence = await _productRepo.GetNextSkuSequenceAsync("PRD");
 
                 var sku = SkuGenerator.Generate(
-                    productName: productDTO.Name,
+                    productName: productName,
                     sequenceNumber: nextSequence
                 );
 
                 var existSku = await _productRepo.IsExistSKUAsync(sku);
                 if (existSku) return OperationResult<ProductDTO>.InternalServerError("There are some issues while creating the Product data, please try again!");
 
-                var existName = await _productRepo.IsExistProductNameAsync(productDTO.Name);
+                var existName = await _productRepo.IsExistProductNameAsync(productName);
                 if (existName) return OperationResult<ProductDTO>.BadRequest("Failed to create product", new string[]
                 {
-                $"{productDTO.Name} has been taken!"
+                $"{productName} has been taken!"
                 });
 
                 var productModel = new Product
                 {
                     SKU = sku,
-                    Name = productDTO.Name
+                    Name = ProductNameHelper.CleanProductName(productName)
                 };
 
                 var createdProduct = await _productRepo.CreateProductAsync(productModel);

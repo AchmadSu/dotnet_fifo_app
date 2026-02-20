@@ -71,7 +71,7 @@ namespace FifoApi.Repositories.ProductRepository
 
         public async Task<bool> IsExistProductNameAsync(string name)
         {
-            return await _context.Products.AnyAsync(p => p.Name.ToLower() == name.ToLower());
+            return await _context.Products.AnyAsync(p => p.Name.ToUpper() == name.ToUpper());
         }
 
         public async Task<bool> IsExistSKUAsync(string sku)

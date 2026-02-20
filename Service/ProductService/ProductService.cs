@@ -6,6 +6,7 @@ using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Interface.ProductInterface;
+using FifoApi.Mappers.Paginate;
 using FifoApi.Mappers.ProductMapper;
 using FifoApi.Models;
 
@@ -60,6 +61,25 @@ namespace FifoApi.Service.ProductService
             {
                 _logger.LogError(e, "Error while creating product");
                 return OperationResult<ProductDTO>.InternalServerError();
+            }
+        }
+
+        public async Task<OperationResult<PagedResult<ProductDTO>>> GetAllProductAsync(ProductQueryObject queryObject)
+        {
+            try
+            {
+                var pagedResult = await _productRepo.GetAllProductAsync(queryObject);
+                if (pagedResult == null || pagedResult.Items.ToArray().Length == 0)
+                {
+                    return OperationResult<PagedResult<ProductDTO>>.NotFound("Data not found");
+                }
+                var dtoPagedResult = pagedResult.Map(p => p.ToProductDTO());
+                return OperationResult<PagedResult<ProductDTO>>.Ok(dtoPagedResult);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting products");
+                return OperationResult<PagedResult<ProductDTO>>.InternalServerError();
             }
         }
     }

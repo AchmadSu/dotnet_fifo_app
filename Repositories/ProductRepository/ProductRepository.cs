@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Data;
+using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Interface.ProductInterface;
@@ -32,9 +33,43 @@ namespace FifoApi.Repositories.ProductRepository
             throw new NotImplementedException();
         }
 
-        public async Task<List<Product>> GetAllProductAsync(ProductQueryObject queryObject)
+        public async Task<PagedResult<Product>> GetAllProductAsync(ProductQueryObject queryObject)
         {
-            throw new NotImplementedException();
+            var products = _context.Products.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(queryObject.Search))
+            {
+                products = products.Where(p => p.Name.ToLower().Contains(queryObject.Search.ToLower()));
+            }
+            if (!string.IsNullOrWhiteSpace(queryObject.SortBy))
+            {
+                if (queryObject.SortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    products = queryObject.IsDescending ?
+                        products.OrderByDescending(p => p.Name) :
+                        products.OrderBy(p => p.Name);
+                }
+            }
+
+            var totalCount = await products.CountAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / queryObject.PageSize);
+
+            var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
+
+            var items = await products
+                .Skip(skipNumber)
+                .Take(queryObject.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Product>
+            {
+                Items = items,
+                PageNumber = queryObject.PageNumber,
+                PageSize = queryObject.PageSize,
+                TotalPages = totalPages,
+                TotalCount = totalCount,
+                HasNextPage = queryObject.PageNumber < totalPages,
+            };
         }
 
         public async Task<Product?> GetProductByIdAsync(int id)

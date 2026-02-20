@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Models;
@@ -10,7 +11,7 @@ namespace FifoApi.Interface.ProductInterface
 {
     public interface IProductRepository
     {
-        Task<List<Product>> GetAllProductAsync(ProductQueryObject queryObject);
+        Task<PagedResult<Product>> GetAllProductAsync(ProductQueryObject queryObject);
         Task<Product?> GetProductByIdAsync(int id);
         Task<Product?> GetProductBySKUAsync(string sku);
         Task<Product> CreateProductAsync(Product product);

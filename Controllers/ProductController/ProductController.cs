@@ -57,5 +57,54 @@ namespace FifoApi.Controllers.ProductController
                 return this.ToErrorActionResult();
             }
         }
+
+        [HttpGet("{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _productService.GetByIdAsync(id);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while getting products");
+                return this.ToErrorActionResult();
+            }
+        }
+
+        [HttpGet("{sku}")]
+        [Authorize]
+        public async Task<IActionResult> GetBySKU(string sku)
+        {
+            try
+            {
+                var result = await _productService.GetBySKUAsync(sku);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while getting products");
+                return this.ToErrorActionResult();
+            }
+        }
+
+        [HttpPut]
+        [Route("{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateProductDTO productDTO)
+        {
+            try
+            {
+                var result = await _productService.UpdateAsync(id, productDTO);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while update product {Name}", productDTO.Name);
+                return this.ToErrorActionResult();
+            }
+        }
     }
 }

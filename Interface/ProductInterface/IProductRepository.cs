@@ -11,9 +11,9 @@ namespace FifoApi.Interface.ProductInterface
 {
     public interface IProductRepository
     {
-        Task<PagedResult<Product>> GetAllProductAsync(ProductQueryObject queryObject);
-        Task<Product?> GetProductByIdAsync(int id);
-        Task<Product?> GetProductBySKUAsync(string sku);
+        Task<IQueryable<Product>> GetAllProductAsync(ProductQueryObject queryObject);
+        Task<Product?> GetByIdAsync(int id);
+        Task<Product?> GetBySKUAsync(string sku);
         Task<Product> CreateProductAsync(Product product);
         Task<Product?> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO);
         Task<Product?> DeleteProductAsync(int id);

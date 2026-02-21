@@ -5,18 +5,23 @@ using System.Threading.Tasks;
 using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
+using FifoApi.Extensions;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Mappers.ProductMapper;
 using FifoApi.Models;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using FifoApi.Mappers;
 
 namespace FifoApi.Repositories.ProductRepository
 {
     public class ProductRepository : IProductRepository
     {
         private readonly ApplicationDBContext _context;
-        public ProductRepository(ApplicationDBContext context)
+        public ProductRepository(
+            ApplicationDBContext context
+        )
         {
             _context = context;
         }
@@ -33,12 +38,12 @@ namespace FifoApi.Repositories.ProductRepository
             throw new NotImplementedException();
         }
 
-        public async Task<PagedResult<Product>> GetAllProductAsync(ProductQueryObject queryObject)
+        public async Task<IQueryable<Product>> GetAllProductAsync(ProductQueryObject queryObject)
         {
             var products = _context.Products.AsQueryable();
             if (!string.IsNullOrWhiteSpace(queryObject.Search))
             {
-                products = products.Where(p => p.Name.ToLower().Contains(queryObject.Search.ToLower()));
+                products = products.Where(p => EF.Functions.Like(p.Name, $"%{queryObject.Search}%"));
             }
             if (!string.IsNullOrWhiteSpace(queryObject.SortBy))
             {
@@ -50,36 +55,17 @@ namespace FifoApi.Repositories.ProductRepository
                 }
             }
 
-            var totalCount = await products.CountAsync();
-
-            var totalPages = (int)Math.Ceiling((double)totalCount / queryObject.PageSize);
-
-            var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
-
-            var items = await products
-                .Skip(skipNumber)
-                .Take(queryObject.PageSize)
-                .ToListAsync();
-
-            return new PagedResult<Product>
-            {
-                Items = items,
-                PageNumber = queryObject.PageNumber,
-                PageSize = queryObject.PageSize,
-                TotalPages = totalPages,
-                TotalCount = totalCount,
-                HasNextPage = queryObject.PageNumber < totalPages,
-            };
+            return products;
         }
 
-        public async Task<Product?> GetProductByIdAsync(int id)
+        public async Task<Product?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Products.Include(p => p.StockBatches).FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<Product?> GetProductBySKUAsync(string sku)
+        public async Task<Product?> GetBySKUAsync(string sku)
         {
-            throw new NotImplementedException();
+            return await _context.Products.Include(p => p.StockBatches).FirstOrDefaultAsync(p => p.SKU == sku);
         }
 
         public async Task<int> GetNextSkuSequenceAsync(string prefix)
@@ -106,17 +92,29 @@ namespace FifoApi.Repositories.ProductRepository
 
         public async Task<bool> IsExistProductNameAsync(string name)
         {
-            return await _context.Products.AnyAsync(p => p.Name.ToUpper() == name.ToUpper());
+            var normalized = name.Trim();
+            return await _context.Products.AnyAsync(p => p.Name == normalized);
         }
 
         public async Task<bool> IsExistSKUAsync(string sku)
         {
-            return await _context.Products.AnyAsync(p => p.SKU.ToUpper() == sku.ToUpper());
+            var normalized = sku.Trim();
+            return await _context.Products.AnyAsync(p => p.SKU == normalized);
         }
 
         public async Task<Product?> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO)
         {
-            throw new NotImplementedException();
+            var existingProduct = await GetByIdAsync(id);
+            if (existingProduct == null)
+            {
+                return null;
+            }
+
+            SafeMapper.Map(updateProductDTO, existingProduct);
+
+            await _context.SaveChangesAsync();
+
+            return existingProduct;
         }
     }
 }

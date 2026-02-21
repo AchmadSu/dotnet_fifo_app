@@ -3,6 +3,7 @@ using System;
 using FifoApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FifoApi.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260221040841_ReconfigureModels")]
+    partial class ReconfigureModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -98,6 +101,18 @@ namespace FifoApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CreatorAppUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierAppUserId")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -112,6 +127,10 @@ namespace FifoApi.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatorAppUserId");
+
+                    b.HasIndex("ModifierAppUserId");
 
                     b.HasIndex("SKU")
                         .IsUnique();
@@ -130,10 +149,22 @@ namespace FifoApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CreatorAppUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
                     b.Property<string>("InvoiceNo")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LastModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierAppUserId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("timestamp with time zone");
@@ -146,8 +177,12 @@ namespace FifoApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatorAppUserId");
+
                     b.HasIndex("InvoiceNo")
                         .IsUnique();
+
+                    b.HasIndex("ModifierAppUserId");
 
                     b.ToTable("Sales");
                 });
@@ -162,6 +197,18 @@ namespace FifoApi.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatorAppUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierAppUserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
@@ -180,6 +227,10 @@ namespace FifoApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatorAppUserId");
+
+                    b.HasIndex("ModifierAppUserId");
+
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SaleId");
@@ -197,6 +248,18 @@ namespace FifoApi.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatorAppUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierAppUserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
@@ -218,6 +281,10 @@ namespace FifoApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatorAppUserId");
+
+                    b.HasIndex("ModifierAppUserId");
+
                     b.HasIndex("ProductId");
 
                     b.ToTable("StockBatches");
@@ -237,6 +304,18 @@ namespace FifoApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CreatorAppUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastModifierId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifierAppUserId")
+                        .HasColumnType("text");
+
                     b.Property<int>("QtyOut")
                         .HasColumnType("integer");
 
@@ -250,6 +329,10 @@ namespace FifoApi.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatorAppUserId");
+
+                    b.HasIndex("ModifierAppUserId");
 
                     b.HasIndex("SaleItemId");
 
@@ -286,13 +369,13 @@ namespace FifoApi.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "c39f11c6-97b1-4494-acf5-265c9879501d",
+                            Id = "d65b6272-7762-43e8-b4bb-92c6783c831a",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "2f642669-5693-415c-ad77-174daccc78d3",
+                            Id = "99244831-fc1e-4af7-bc13-aadca59e7710",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -404,8 +487,46 @@ namespace FifoApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FifoApi.Models.Product", b =>
+                {
+                    b.HasOne("FifoApi.Models.AppUser", "CreatorAppUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorAppUserId");
+
+                    b.HasOne("FifoApi.Models.AppUser", "ModifierAppUser")
+                        .WithMany()
+                        .HasForeignKey("ModifierAppUserId");
+
+                    b.Navigation("CreatorAppUser");
+
+                    b.Navigation("ModifierAppUser");
+                });
+
+            modelBuilder.Entity("FifoApi.Models.Sale", b =>
+                {
+                    b.HasOne("FifoApi.Models.AppUser", "CreatorAppUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorAppUserId");
+
+                    b.HasOne("FifoApi.Models.AppUser", "ModifierAppUser")
+                        .WithMany()
+                        .HasForeignKey("ModifierAppUserId");
+
+                    b.Navigation("CreatorAppUser");
+
+                    b.Navigation("ModifierAppUser");
+                });
+
             modelBuilder.Entity("FifoApi.Models.SaleItem", b =>
                 {
+                    b.HasOne("FifoApi.Models.AppUser", "CreatorAppUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorAppUserId");
+
+                    b.HasOne("FifoApi.Models.AppUser", "ModifierAppUser")
+                        .WithMany()
+                        .HasForeignKey("ModifierAppUserId");
+
                     b.HasOne("FifoApi.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -418,6 +539,10 @@ namespace FifoApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CreatorAppUser");
+
+                    b.Navigation("ModifierAppUser");
+
                     b.Navigation("Product");
 
                     b.Navigation("Sale");
@@ -425,17 +550,37 @@ namespace FifoApi.Migrations
 
             modelBuilder.Entity("FifoApi.Models.Stock", b =>
                 {
+                    b.HasOne("FifoApi.Models.AppUser", "CreatorAppUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorAppUserId");
+
+                    b.HasOne("FifoApi.Models.AppUser", "ModifierAppUser")
+                        .WithMany()
+                        .HasForeignKey("ModifierAppUserId");
+
                     b.HasOne("FifoApi.Models.Product", "Product")
                         .WithMany("StockBatches")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CreatorAppUser");
+
+                    b.Navigation("ModifierAppUser");
+
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("FifoApi.Models.StockMovement", b =>
                 {
+                    b.HasOne("FifoApi.Models.AppUser", "CreatorAppUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorAppUserId");
+
+                    b.HasOne("FifoApi.Models.AppUser", "ModifierAppUser")
+                        .WithMany()
+                        .HasForeignKey("ModifierAppUserId");
+
                     b.HasOne("FifoApi.Models.SaleItem", "SaleItem")
                         .WithMany("StockMovements")
                         .HasForeignKey("SaleItemId")
@@ -447,6 +592,10 @@ namespace FifoApi.Migrations
                         .HasForeignKey("StockBatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CreatorAppUser");
+
+                    b.Navigation("ModifierAppUser");
 
                     b.Navigation("SaleItem");
 

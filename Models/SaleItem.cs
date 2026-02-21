@@ -18,6 +18,10 @@ namespace FifoApi.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal SalePrice { get; set; }
-        public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+        public List<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+        public void ValidateQty()
+        {
+            if (Qty <= 0) throw new InvalidOperationException("Qty must be greater than 0");
+        }
     }
 }

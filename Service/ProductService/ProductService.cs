@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
+using FifoApi.Extensions;
+using FifoApi.Helpers;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Mappers.Paginate;
@@ -28,7 +30,7 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
-                var productName = ProductNameHelper.CleanProductName(productDTO.Name);
+                var productName = StringHelper.CleanStringName(productDTO.Name);
                 var nextSequence = await _productRepo.GetNextSkuSequenceAsync("PRD");
 
                 var sku = SkuGenerator.Generate(
@@ -48,7 +50,7 @@ namespace FifoApi.Service.ProductService
                 var productModel = new Product
                 {
                     SKU = sku,
-                    Name = ProductNameHelper.CleanProductName(productName)
+                    Name = productName
                 };
 
                 var createdProduct = await _productRepo.CreateProductAsync(productModel);
@@ -68,18 +70,90 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
-                var pagedResult = await _productRepo.GetAllProductAsync(queryObject);
-                if (pagedResult == null || pagedResult.Items.ToArray().Length == 0)
+                var productsQuery = await _productRepo.GetAllProductAsync(queryObject);
+                if (productsQuery == null || productsQuery.ToArray().Length == 0)
                 {
                     return OperationResult<PagedResult<ProductDTO>>.NotFound("Data not found");
                 }
-                var dtoPagedResult = pagedResult.Map(p => p.ToProductDTO());
-                return OperationResult<PagedResult<ProductDTO>>.Ok(dtoPagedResult);
+                var pagedResult = await productsQuery.ToPagedResultAsync(
+                    queryObject.PageNumber,
+                    queryObject.PageSize,
+                    p => p.ToProductDTO()
+                );
+                return OperationResult<PagedResult<ProductDTO>>.Ok(pagedResult);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error while getting products");
                 return OperationResult<PagedResult<ProductDTO>>.InternalServerError();
+            }
+        }
+
+        public async Task<OperationResult<ProductDetailDTO>> GetByIdAsync(int id)
+        {
+            try
+            {
+                var product = await _productRepo.GetByIdAsync(id);
+                if (product == null)
+                {
+                    return OperationResult<ProductDetailDTO>.NotFound("Data not found");
+                }
+                var productDTO = product.ToProductDetailDTO();
+                return OperationResult<ProductDetailDTO>.Ok(productDTO);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting products");
+                return OperationResult<ProductDetailDTO>.InternalServerError();
+            }
+        }
+
+        public async Task<OperationResult<ProductDetailDTO>> GetBySKUAsync(string sku)
+        {
+            try
+            {
+                var normalizeSKU = StringHelper.NormalizeSku(sku);
+                var product = await _productRepo.GetBySKUAsync(normalizeSKU);
+                if (product == null)
+                {
+                    return OperationResult<ProductDetailDTO>.NotFound("Data not found");
+                }
+                var productDTO = product.ToProductDetailDTO();
+                return OperationResult<ProductDetailDTO>.Ok(productDTO);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting products");
+                return OperationResult<ProductDetailDTO>.InternalServerError();
+            }
+        }
+
+        public async Task<OperationResult<ProductDTO?>> UpdateAsync(int id, UpdateProductDTO productDTO)
+        {
+            try
+            {
+                productDTO.Name = StringHelper.CleanStringName(productDTO.Name);
+                var existName = await _productRepo.IsExistProductNameAsync(productDTO.Name);
+                if (existName) return OperationResult<ProductDTO?>.BadRequest("Failed to create product", new string[]
+                {
+                $"{productDTO.Name} has been taken!"
+                });
+
+                var updateProduct = await _productRepo.UpdateProductAsync(id, productDTO);
+
+                if (updateProduct == null)
+                {
+                    return OperationResult<ProductDTO?>.BadRequest("Product to update not found!");
+                }
+
+                return OperationResult<ProductDTO?>.Ok(
+                    updateProduct.ToProductDTO()
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while creating product");
+                return OperationResult<ProductDTO?>.InternalServerError();
             }
         }
     }

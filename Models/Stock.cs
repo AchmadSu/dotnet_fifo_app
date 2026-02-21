@@ -19,5 +19,12 @@ namespace FifoApi.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal PurchasePrice { get; set; }
         public DateTime ReceivedAt { get; set; }
+        public List<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+        public void AdjustQtyRemaining(int qtyOut)
+        {
+            if (qtyOut > QtyRemaining)
+                throw new InvalidOperationException("Qty Out cannot exceed Qty Remaining");
+            QtyRemaining -= qtyOut;
+        }
     }
 }

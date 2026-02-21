@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Models
 {
@@ -18,5 +19,8 @@ namespace FifoApi.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
+        public List<SaleItem> SaleItems { get; set; } = new List<SaleItem>();
+        public void CalculateTotal() =>
+            TotalAmount = SaleItems.Sum(x => x.Qty * x.SalePrice);
     }
 }

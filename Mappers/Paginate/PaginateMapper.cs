@@ -18,9 +18,7 @@ namespace FifoApi.Mappers.Paginate
                 Items = source.Items.Select(mapFunc).ToList(),
                 PageNumber = source.PageNumber,
                 PageSize = source.PageSize,
-                TotalCount = source.TotalCount,
-                TotalPages = source.TotalPages,
-                HasNextPage = source.HasNextPage
+                TotalCount = source.TotalCount
             };
         }
     }

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using FifoApi.Helpers;
 
 namespace FifoApi.Models
 {
@@ -17,7 +18,7 @@ namespace FifoApi.Models
 
         [StringLength(100, MinimumLength = 1, ErrorMessage = "Only takes 1 to 100 length characters for Product Name")]
         public string Name { get; set; } = string.Empty;
-        public ICollection<Stock> StockBatches { get; set; } = new List<Stock>();
-        public ICollection<SaleItem> SaleItems { get; set; } = new List<SaleItem>();
+        public List<Stock> StockBatches { get; set; } = new List<Stock>();
+        public void NormalizeSKU() => SKU = StringHelper.NormalizeSku(SKU);
     }
 }

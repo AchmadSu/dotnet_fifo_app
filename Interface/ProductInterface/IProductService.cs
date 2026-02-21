@@ -12,5 +12,8 @@ namespace FifoApi.Interface.ProductInterface
     {
         Task<OperationResult<ProductDTO>> CreateAsync(CreateProductDTO productDTO);
         Task<OperationResult<PagedResult<ProductDTO>>> GetAllProductAsync(ProductQueryObject queryObject);
+        Task<OperationResult<ProductDetailDTO>> GetByIdAsync(int id);
+        Task<OperationResult<ProductDetailDTO>> GetBySKUAsync(string sku);
+        Task<OperationResult<ProductDTO?>> UpdateAsync(int id, UpdateProductDTO productDTO);
     }
 }

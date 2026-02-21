@@ -18,6 +18,14 @@ namespace FifoApi.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal CostPrice { get; set; }
-
+        public void ValidateQtyOut()
+        {
+            if (QtyOut <= 0)
+            {
+                throw new InvalidOperationException("Qty Out must be greater than 0");
+            }
+            if (QtyOut > StockBatch.QtyRemaining)
+                throw new InvalidOperationException("Qty Out cannot exceed Stock Batch Qty Remaining");
+        }
     }
 }

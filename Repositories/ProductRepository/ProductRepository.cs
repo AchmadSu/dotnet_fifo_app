@@ -43,7 +43,7 @@ namespace FifoApi.Repositories.ProductRepository
             var products = _context.Products.AsQueryable();
             if (!string.IsNullOrWhiteSpace(queryObject.Search))
             {
-                products = products.Where(p => EF.Functions.Like(p.Name, $"%{queryObject.Search}%"));
+                products = products.Where(p => EF.Functions.ILike(p.Name, $"%{queryObject.Search}%"));
             }
             if (!string.IsNullOrWhiteSpace(queryObject.SortBy))
             {
@@ -88,6 +88,11 @@ namespace FifoApi.Repositories.ProductRepository
             var lastSequence = int.Parse(parts[^1]);
 
             return lastSequence + 1;
+        }
+
+        public async Task<bool> IsExistByIdAsync(int id)
+        {
+            return await _context.Products.AnyAsync(p => p.Id == id);
         }
 
         public async Task<bool> IsExistProductNameAsync(string name)

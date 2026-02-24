@@ -21,5 +21,17 @@ namespace FifoApi.Mappers.StockMapper
                 ProductId = stock.ProductId
             };
         }
+
+        public static Stock ToStockFromCreateDTO(this CreateStockDTO stockDTO, int productId)
+        {
+            return new Stock
+            {
+                QtyIn = stockDTO.QtyIn,
+                QtyRemaining = stockDTO.QtyIn,
+                PurchasePrice = stockDTO.PurchasePrice,
+                ReceivedAt = stockDTO.ReceivedAt,
+                ProductId = productId
+            };
+        }
     }
 }

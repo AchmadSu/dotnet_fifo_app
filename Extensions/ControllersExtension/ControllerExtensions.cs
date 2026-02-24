@@ -29,6 +29,7 @@ namespace FifoApi.Extensions.Controllers
             if (result.StatusCode != System.Net.HttpStatusCode.OK && result.Errors != null)
             {
                 response.Add("errors", result.Errors);
+                response.Remove("data");
             }
 
             return controller.StatusCode((int)result.StatusCode, response);

@@ -47,13 +47,7 @@ namespace FifoApi.Service.ProductService
                 $"{productName} has been taken!"
                 });
 
-                var productModel = new Product
-                {
-                    SKU = sku,
-                    Name = productName
-                };
-
-                var createdProduct = await _productRepo.CreateProductAsync(productModel);
+                var createdProduct = await _productRepo.CreateProductAsync(productDTO.ToProductFromCreateDTO(sku));
 
                 return OperationResult<ProductDTO>.Ok(
                     createdProduct.ToProductDTO()
@@ -89,26 +83,26 @@ namespace FifoApi.Service.ProductService
             }
         }
 
-        public async Task<OperationResult<ProductDetailDTO>> GetByIdAsync(int id)
+        public async Task<OperationResult<ProductDetailDTO?>> GetByIdAsync(int id)
         {
             try
             {
                 var product = await _productRepo.GetByIdAsync(id);
                 if (product == null)
                 {
-                    return OperationResult<ProductDetailDTO>.NotFound("Data not found");
+                    return OperationResult<ProductDetailDTO?>.NotFound("Data not found");
                 }
                 var productDTO = product.ToProductDetailDTO();
-                return OperationResult<ProductDetailDTO>.Ok(productDTO);
+                return OperationResult<ProductDetailDTO?>.Ok(productDTO);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error while getting products");
-                return OperationResult<ProductDetailDTO>.InternalServerError();
+                return OperationResult<ProductDetailDTO?>.InternalServerError();
             }
         }
 
-        public async Task<OperationResult<ProductDetailDTO>> GetBySKUAsync(string sku)
+        public async Task<OperationResult<ProductDetailDTO?>> GetBySKUAsync(string sku)
         {
             try
             {
@@ -116,15 +110,15 @@ namespace FifoApi.Service.ProductService
                 var product = await _productRepo.GetBySKUAsync(normalizeSKU);
                 if (product == null)
                 {
-                    return OperationResult<ProductDetailDTO>.NotFound("Data not found");
+                    return OperationResult<ProductDetailDTO?>.NotFound("Data not found");
                 }
                 var productDTO = product.ToProductDetailDTO();
-                return OperationResult<ProductDetailDTO>.Ok(productDTO);
+                return OperationResult<ProductDetailDTO?>.Ok(productDTO);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error while getting products");
-                return OperationResult<ProductDetailDTO>.InternalServerError();
+                return OperationResult<ProductDetailDTO?>.InternalServerError();
             }
         }
 

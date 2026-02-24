@@ -17,5 +17,7 @@ namespace FifoApi.Helpers
             get => _pageSize;
             set => _pageSize = (value > 50) ? 50 : (value < 1 ? 1 : value);
         }
+        public DateTime? From { get; set; }
+        public DateTime? To { get; set; }
     }
 }

@@ -17,6 +17,7 @@ namespace FifoApi.Interface.ProductInterface
         Task<Product> CreateProductAsync(Product product);
         Task<Product?> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO);
         Task<Product?> DeleteProductAsync(int id);
+        Task<bool> IsExistByIdAsync(int id);
         Task<bool> IsExistSKUAsync(string sku);
         Task<bool> IsExistProductNameAsync(string name);
         Task<int> GetNextSkuSequenceAsync(string prefix);

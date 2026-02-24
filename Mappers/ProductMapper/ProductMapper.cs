@@ -20,6 +20,15 @@ namespace FifoApi.Mappers.ProductMapper
             };
         }
 
+        public static Product ToProductFromCreateDTO(this CreateProductDTO productDTO, string sku)
+        {
+            return new Product
+            {
+                SKU = sku,
+                Name = productDTO.Name
+            };
+        }
+
         public static ProductDetailDTO ToProductDetailDTO(this Product product)
         {
             return new ProductDetailDTO

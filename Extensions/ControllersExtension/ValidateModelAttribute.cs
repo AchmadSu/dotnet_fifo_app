@@ -14,7 +14,6 @@ namespace FifoApi.Extensions.Controllers
         {
             if (!context.ModelState.IsValid)
             {
-                // Ambil semua error message
                 var errors = context.ModelState
                     .Where(x => x.Value.Errors.Count > 0)
                     .ToDictionary(

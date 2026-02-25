@@ -10,7 +10,7 @@ namespace FifoApi.Interface.StockInterface
 {
     public interface IStockService
     {
-        Task<OperationResult<PagedResult<StockDTO>>> GetAllStock(int productId, StockQueryObject query);
+        Task<OperationResult<PagedResult<StockDTO>>> GetAllStock(string productSKU, StockQueryObject query);
         Task<OperationResult<StockDetailDTO?>> GetStockByIDAsync(int id);
         Task<OperationResult<StockDTO>> CreateStockAsync(string productSKU, CreateStockDTO stockDTO);
         Task<OperationResult<StockDTO?>> UpdateStockAsync(int productId, UpdateStockDTO stockDTO);

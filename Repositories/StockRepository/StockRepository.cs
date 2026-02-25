@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Data;
 using FifoApi.DTOs.StockBatchesDTO;
+using FifoApi.Helpers;
 using FifoApi.Helpers.StockHelper;
 using FifoApi.Interface.StockInterface;
 using FifoApi.Models;
@@ -25,14 +26,17 @@ namespace FifoApi.Repositories.StockRepository
             return model;
         }
 
-        public Task<Stock?> DeleteStockAsync(int id)
+        public async Task<Stock?> DeleteStockAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IQueryable<Stock>> GetAllStockAsync(int productId, StockQueryObject query)
+        public async Task<IQueryable<Stock>> GetAllStockAsync(int productId, StockQueryObject query)
         {
-            throw new NotImplementedException();
+            var stocks = _context.StockBatches.AsQueryable();
+            stocks = stocks.Where(s => s.ProductId == productId);
+            stocks = DynamicFilterBuilder.ApplyFilters(stocks, query);
+            return stocks;
         }
 
         public Task<Stock?> GetStockByIdAsync(int id)

@@ -58,7 +58,7 @@ namespace FifoApi.Helpers
                     var opProp = dtoType.GetProperty(prop.Name + "Op");
                     if (opProp == null) continue;
 
-                    var op = opProp.GetValue(queryObject)?.ToString();
+                    var op = opProp.GetValue(queryObject)?.ToString()?.Trim();
                     if (string.IsNullOrWhiteSpace(op)) continue;
 
                     if (DateHelper.IsDateType(propType))

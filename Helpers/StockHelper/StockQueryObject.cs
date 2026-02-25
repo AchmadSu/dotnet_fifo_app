@@ -2,18 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FifoApi.Validations;
 
 namespace FifoApi.Helpers.StockHelper
 {
     public class StockQueryObject : QueryObject
     {
         public int? QtyIn { get; set; }
-        public int? QtyInOp { get; set; }
+
+        [ComparisonOperator]
+        public string? QtyInOp { get; set; }
+
         public int? QtyRemaining { get; set; }
-        public int? QtyRemainingOp { get; set; }
+
+        [ComparisonOperator]
+        public string? QtyRemainingOp { get; set; }
+
         public decimal? PurchasePrice { get; set; }
-        public decimal? PurchasePriceOp { get; set; }
+
+        [ComparisonOperator]
+        public string? PurchasePriceOp { get; set; }
+
         public DateTime? ReceivedAt { get; set; }
+
+        [ComparisonOperator]
         public string? ReceivedAtOp { get; set; }
 
         public int? QtyInFrom { get; set; }

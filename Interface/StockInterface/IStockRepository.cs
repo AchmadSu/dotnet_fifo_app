@@ -13,7 +13,7 @@ namespace FifoApi.Interface.StockInterface
         Task<IQueryable<Stock>> GetAllStockAsync(int productId, StockQueryObject query);
         Task<Stock?> GetStockByIdAsync(int id);
         Task<Stock> CreateStockAsync(Stock stock);
-        Task<Stock?> UpdateStockAsync(UpdateStockDTO stockDTO);
+        Task<Stock?> UpdateStockAsync(int id, UpdateStockDTO stockDTO);
         Task<Stock?> DeleteStockAsync(int id);
     }
 }

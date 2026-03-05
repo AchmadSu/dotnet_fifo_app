@@ -7,7 +7,9 @@ using FifoApi.DTOs.StockBatchesDTO;
 using FifoApi.Helpers;
 using FifoApi.Helpers.StockHelper;
 using FifoApi.Interface.StockInterface;
+using FifoApi.Mappers;
 using FifoApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Repositories.StockRepository
 {
@@ -39,14 +41,24 @@ namespace FifoApi.Repositories.StockRepository
             return stocks;
         }
 
-        public Task<Stock?> GetStockByIdAsync(int id)
+        public async Task<Stock?> GetStockByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.StockBatches.Include(m => m.StockMovements).FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public Task<Stock?> UpdateStockAsync(UpdateStockDTO stockDTO)
+        public async Task<Stock?> UpdateStockAsync(int id, UpdateStockDTO stockDTO)
         {
-            throw new NotImplementedException();
+            var existingStock = await GetStockByIdAsync(id);
+            if (existingStock == null)
+            {
+                return null;
+            }
+
+            SafeMapper.Map(stockDTO, existingStock);
+
+            await _context.SaveChangesAsync();
+
+            return existingStock;
         }
     }
 }

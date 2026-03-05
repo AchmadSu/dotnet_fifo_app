@@ -97,7 +97,7 @@ namespace FifoApi.Service.ProductService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error while getting products");
+                _logger.LogError(e, "Error while getting product by id");
                 return OperationResult<ProductDetailDTO?>.InternalServerError();
             }
         }
@@ -117,7 +117,7 @@ namespace FifoApi.Service.ProductService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error while getting products");
+                _logger.LogError(e, "Error while getting product by sku");
                 return OperationResult<ProductDetailDTO?>.InternalServerError();
             }
         }
@@ -146,7 +146,7 @@ namespace FifoApi.Service.ProductService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error while creating product");
+                _logger.LogError(e, "Error while updating product");
                 return OperationResult<ProductDTO?>.InternalServerError();
             }
         }

@@ -8,10 +8,10 @@ namespace FifoApi.Helpers
 {
     public static class ComparisonExpressionBuilder
     {
-        private static readonly HashSet<string> AllowedOperators =
-        [
+        private static readonly HashSet<string> AllowedOperators = new()
+        {
             ">", ">=", "<", "<=", "=", "=="
-        ];
+        };
 
         public static Expression<Func<TEntity, bool>> Build<TEntity, TProperty>(
             Expression<Func<TEntity, TProperty>> selector,

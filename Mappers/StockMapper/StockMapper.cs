@@ -33,5 +33,19 @@ namespace FifoApi.Mappers.StockMapper
                 ProductId = productId
             };
         }
+
+        public static StockDetailDTO ToStockDetailDTO(this Stock stock)
+        {
+            return new StockDetailDTO
+            {
+                Id = stock.Id,
+                QtyIn = stock.QtyIn,
+                QtyRemaining = stock.QtyRemaining,
+                PurchasePrice = stock.PurchasePrice,
+                ReceivedAt = stock.ReceivedAt,
+                ProductId = stock.ProductId,
+                StockMovements = stock.StockMovements.Select(m => m.ToMovementDTO()).ToList()
+            };
+        }
     }
 }

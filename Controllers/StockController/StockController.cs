@@ -58,5 +58,22 @@ namespace FifoApi.Controllers.StockController
                 return this.ToErrorActionResult();
             }
         }
+
+        [HttpGet]
+        [Route("detail/{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _stockService.GetStockByIDAsync(id);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while getting stock by id");
+                return this.ToErrorActionResult();
+            }
+        }
     }
 }

@@ -90,9 +90,23 @@ namespace FifoApi.Service.StockService
             }
         }
 
-        public Task<OperationResult<StockDetailDTO?>> GetStockByIDAsync(int id)
+        public async Task<OperationResult<StockDetailDTO?>> GetStockByIDAsync(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var stock = await _stockRepo.GetStockByIdAsync(id);
+                if (stock == null)
+                {
+                    return OperationResult<StockDetailDTO?>.NotFound("Data not found");
+                }
+                var stockDTO = stock.ToStockDetailDTO();
+                return OperationResult<StockDetailDTO?>.Ok(stockDTO);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting stock by id");
+                return OperationResult<StockDetailDTO?>.InternalServerError();
+            }
         }
 
         public Task<OperationResult<StockDTO?>> UpdateStockAsync(int productId, UpdateStockDTO stockDTO)

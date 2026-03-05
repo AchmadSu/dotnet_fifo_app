@@ -109,9 +109,29 @@ namespace FifoApi.Service.StockService
             }
         }
 
-        public Task<OperationResult<StockDTO?>> UpdateStockAsync(int productId, UpdateStockDTO stockDTO)
+        public async Task<OperationResult<StockDTO?>> UpdateStockAsync(int id, UpdateStockDTO stockDTO)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var stock = await _stockRepo.GetStockByIdAsync(id);
+                if (stock == null) return OperationResult<StockDTO?>.NotFound("Stock not found");
+
+                var updateStock = await _stockRepo.UpdateStockAsync(id, stockDTO);
+
+                if (updateStock == null)
+                {
+                    return OperationResult<StockDTO?>.BadRequest("Product to update not found!");
+                }
+
+                return OperationResult<StockDTO?>.Ok(
+                    updateStock.ToStockDTO()
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while updating stock");
+                return OperationResult<StockDTO?>.InternalServerError();
+            }
         }
     }
 }

@@ -59,8 +59,7 @@ namespace FifoApi.Controllers.StockController
             }
         }
 
-        [HttpGet]
-        [Route("detail/{id:int}")]
+        [HttpGet("detail/{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
@@ -72,6 +71,23 @@ namespace FifoApi.Controllers.StockController
             catch (Exception e)
             {
                 _logger.LogError(e, "Unexpected error while getting stock by id");
+                return this.ToErrorActionResult();
+            }
+        }
+
+        [HttpPut]
+        [Route("{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockDTO stockDTO)
+        {
+            try
+            {
+                var result = await _stockService.UpdateStockAsync(id, stockDTO);
+                return this.ToActionResult(result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unexpected error while update stock {id}", id);
                 return this.ToErrorActionResult();
             }
         }

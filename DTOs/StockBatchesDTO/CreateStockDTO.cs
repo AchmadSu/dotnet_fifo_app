@@ -10,7 +10,7 @@ namespace FifoApi.DTOs.StockBatchesDTO
     public class CreateStockDTO
     {
         [Required]
-        [Range(typeof(int), "1", "99999999", ErrorMessage = "Price must be between 0.00 and 99999999")]
+        [Range(typeof(int), "1", "99999999", ErrorMessage = "Qty must be between 0.00 and 99999999")]
         public int QtyIn { get; set; }
 
         [Required]

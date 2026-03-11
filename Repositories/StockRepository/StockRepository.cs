@@ -85,17 +85,9 @@ namespace FifoApi.Repositories.StockRepository
             return existingStock;
         }
 
-        private static async Task<bool> ValidateAdjustOperator(string opr)
+        private static Task<bool> ValidateAdjustOperator(string opr)
         {
-            string pattern = "^[+-]*$";
-            bool result = Regex.IsMatch(opr, pattern);
-
-            if (!result)
-            {
-                return result;
-            }
-
-            return true;
+            return Task.FromResult(opr == "+" || opr == "-");
         }
 
         public async Task<bool> AdjustStockQtyAsync(int id, string opr, int qty = 0)
@@ -103,28 +95,18 @@ namespace FifoApi.Repositories.StockRepository
             if (!await ValidateAdjustOperator(opr))
                 return false;
 
-            var existingStock = await GetStockByIdAsync(id);
-            if (existingStock == null)
-            {
+            var stock = await GetStockByIdAsync(id);
+            if (stock == null)
                 return false;
-            }
 
-            if (existingStock?.QtyRemaining <= 0)
-            {
+            if (opr == "-" && stock.QtyRemaining < qty)
                 return false;
-            }
 
-            if (existingStock != null && opr == "+")
-            {
-                existingStock.QtyRemaining += qty;
-            }
-            else if (existingStock != null && opr == "-")
-            {
-                existingStock.QtyRemaining -= qty;
-            }
+            stock.QtyRemaining = opr == "+"
+                ? stock.QtyRemaining + qty
+                : stock.QtyRemaining - qty;
 
             await _context.SaveChangesAsync();
-
             return true;
         }
 
@@ -148,14 +130,14 @@ namespace FifoApi.Repositories.StockRepository
                 return false;
 
             var sql = new StringBuilder();
-            sql.Append($"UPDATE StockBatches SET QtyRemaining = QtyRemaining {opr} CASE ");
+            sql.Append($"UPDATE \"StockBatches\" SET \"QtyRemaining\" = \"QtyRemaining\" {opr} CASE ");
 
             var parameters = new List<object>();
             int i = 0;
 
             foreach (var item in data)
             {
-                sql.Append($"WHEN Id = @id{i} THEN @qty{i} ");
+                sql.Append($"WHEN \"Id\" = @id{i} THEN @qty{i} ");
 
                 parameters.Add(new Npgsql.NpgsqlParameter($"id{i}", item.Id));
                 parameters.Add(new Npgsql.NpgsqlParameter($"qty{i}", item.Qty));
@@ -163,8 +145,8 @@ namespace FifoApi.Repositories.StockRepository
                 i++;
             }
 
-            sql.Append("ELSE 0 END ");
-            sql.Append($"WHERE Id IN ({string.Join(", ", ids)})");
+            sql.Append("END ");
+            sql.Append($"WHERE \"Id\" IN ({string.Join(", ", ids)})");
             var affectedRows = await _context.Database.ExecuteSqlRawAsync(sql.ToString(), parameters);
 
             if (affectedRows != data.Count)

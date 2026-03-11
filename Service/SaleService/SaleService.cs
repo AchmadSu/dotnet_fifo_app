@@ -34,6 +34,7 @@ namespace FifoApi.Service.SaleService
         {
             _saleRepo = saleRepo;
             _stockRepo = stockRepo;
+            _productRepo = productRepo;
             _context = context;
             _logger = logger;
         }

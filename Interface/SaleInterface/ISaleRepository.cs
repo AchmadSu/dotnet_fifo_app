@@ -12,6 +12,7 @@ namespace FifoApi.Interface.SaleInterface
         Task<IQueryable<Sale>> GetAllSalesAsync(SaleQueryObject query);
         Task<Sale?> GetByIdAsync(int id);
         Task<Sale?> GetByInvoiceAsync(string invoice);
-        Task<Sale> CreateSaleAsync(Sale sale, SaleItem item);
+        Task<Sale> CreateSaleAsync(Sale sale);
+        Task<int> GetNextInvoiceSequenceAsync(string prefix);
     }
 }

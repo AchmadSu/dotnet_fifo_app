@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FifoApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0cf9f828cfd840f5afe4c3056f2d6a1b2d615f86")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d928970c851ce1214667cfd3c818293f627ebc61")]
 [assembly: System.Reflection.AssemblyProductAttribute("FifoApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FifoApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

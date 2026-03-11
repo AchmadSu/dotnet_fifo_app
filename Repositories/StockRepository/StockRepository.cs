@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FifoApi.Data;
 using FifoApi.DTOs.StockBatchesDTO;
 using FifoApi.Helpers;
 using FifoApi.Helpers.StockHelper;
+using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.StockInterface;
 using FifoApi.Mappers;
 using FifoApi.Models;
@@ -16,10 +19,16 @@ namespace FifoApi.Repositories.StockRepository
     public class StockRepository : IStockRepository
     {
         private readonly ApplicationDBContext _context;
-        public StockRepository(ApplicationDBContext context)
+        // private readonly IProductRepository _productRepo;
+        public StockRepository(
+            ApplicationDBContext context
+        // IProductRepository productRepo
+        )
         {
             _context = context;
+            // _productRepo = productRepo;
         }
+
         public async Task<Stock> CreateStockAsync(Stock stock)
         {
             var model = stock;
@@ -41,6 +50,21 @@ namespace FifoApi.Repositories.StockRepository
             return stocks;
         }
 
+        public async Task<List<Stock>> GetAvailableStockAsync(List<int> productIds)
+        {
+            productIds = productIds.Distinct().ToList();
+            return await _context.StockBatches
+                .FromSqlInterpolated($@"
+                    SELECT *
+                    FROM ""StockBatches""
+                    WHERE ""ProductId"" = ANY({productIds})
+                    AND ""QtyRemaining"" > 0
+                    ORDER BY ""ProductId"", ""ReceivedAt""
+                    FOR UPDATE SKIP LOCKED
+                ")
+                .ToListAsync();
+        }
+
         public async Task<Stock?> GetStockByIdAsync(int id)
         {
             return await _context.StockBatches.Include(m => m.StockMovements).FirstOrDefaultAsync(s => s.Id == id);
@@ -59,6 +83,94 @@ namespace FifoApi.Repositories.StockRepository
             await _context.SaveChangesAsync();
 
             return existingStock;
+        }
+
+        private static async Task<bool> ValidateAdjustOperator(string opr)
+        {
+            string pattern = "^[+-]*$";
+            bool result = Regex.IsMatch(opr, pattern);
+
+            if (!result)
+            {
+                return result;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> AdjustStockQtyAsync(int id, string opr, int qty = 0)
+        {
+            if (!await ValidateAdjustOperator(opr))
+                return false;
+
+            var existingStock = await GetStockByIdAsync(id);
+            if (existingStock == null)
+            {
+                return false;
+            }
+
+            if (existingStock?.QtyRemaining <= 0)
+            {
+                return false;
+            }
+
+            if (existingStock != null && opr == "+")
+            {
+                existingStock.QtyRemaining += qty;
+            }
+            else if (existingStock != null && opr == "-")
+            {
+                existingStock.QtyRemaining -= qty;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> AdjustListStockQtyAsync(AdjustListStockQtyDTO adjustDTO, string opr)
+        {
+            if (!await ValidateAdjustOperator(opr))
+                return false;
+
+            var data = adjustDTO.AdjustStockDTOs;
+            if (data == null || data.Count == 0)
+                return false;
+
+            var ids = data.Select(x => x.Id).Distinct().ToList();
+
+            var existingIds = await _context.StockBatches
+                .Where(x => ids.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+
+            if (existingIds.Count != ids.Count)
+                return false;
+
+            var sql = new StringBuilder();
+            sql.Append($"UPDATE StockBatches SET QtyRemaining = QtyRemaining {opr} CASE ");
+
+            var parameters = new List<object>();
+            int i = 0;
+
+            foreach (var item in data)
+            {
+                sql.Append($"WHEN Id = @id{i} THEN @qty{i} ");
+
+                parameters.Add(new Npgsql.NpgsqlParameter($"id{i}", item.Id));
+                parameters.Add(new Npgsql.NpgsqlParameter($"qty{i}", item.Qty));
+
+                i++;
+            }
+
+            sql.Append("ELSE 0 END ");
+            sql.Append($"WHERE Id IN ({string.Join(", ", ids)})");
+            var affectedRows = await _context.Database.ExecuteSqlRawAsync(sql.ToString(), parameters);
+
+            if (affectedRows != data.Count)
+                return false;
+
+            return true;
         }
     }
 }

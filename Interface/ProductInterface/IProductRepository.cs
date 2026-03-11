@@ -21,5 +21,6 @@ namespace FifoApi.Interface.ProductInterface
         Task<bool> IsExistSKUAsync(string sku);
         Task<bool> IsExistProductNameAsync(string name);
         Task<int> GetNextSkuSequenceAsync(string prefix);
+        Task<List<Product>> GetByIdsAsync(List<int> ids);
     }
 }

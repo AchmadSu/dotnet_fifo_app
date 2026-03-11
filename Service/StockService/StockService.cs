@@ -120,7 +120,7 @@ namespace FifoApi.Service.StockService
 
                 if (updateStock == null)
                 {
-                    return OperationResult<StockDTO?>.BadRequest("Product to update not found!");
+                    return OperationResult<StockDTO?>.BadRequest("Stock to update not found!");
                 }
 
                 return OperationResult<StockDTO?>.Ok(

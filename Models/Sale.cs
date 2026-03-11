@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Models
 {
+    [Index(nameof(InvoiceNo), IsUnique = true)]
     [Table("Sales")]
     public class Sale : BaseEntity
     {

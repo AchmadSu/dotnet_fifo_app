@@ -68,6 +68,11 @@ namespace FifoApi.Repositories.ProductRepository
             return await _context.Products.Include(p => p.StockBatches).FirstOrDefaultAsync(p => p.SKU == sku);
         }
 
+        public async Task<List<Product>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.Products.Where(p => ids.Contains(p.Id)).ToListAsync();
+        }
+
         public async Task<int> GetNextSkuSequenceAsync(string prefix)
         {
             var currentMonth = DateTime.UtcNow.ToString("yyyyMM");

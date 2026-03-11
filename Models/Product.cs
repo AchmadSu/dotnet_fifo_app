@@ -5,9 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Models
 {
+    [Index(nameof(SKU), IsUnique = true)]
     [Table("Products")]
     public class Product : BaseEntity
     {

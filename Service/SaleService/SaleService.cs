@@ -58,7 +58,7 @@ namespace FifoApi.Service.SaleService
 
                 var stocks = await _stockRepo.GetAvailableStockAsync(productIds);
 
-                if (!stocks.Any())
+                if (stocks == null || !stocks.Any())
                 {
                     await trx.RollbackAsync();
                     return OperationResult<SaleDTO>.BadRequest("Stocks not found");

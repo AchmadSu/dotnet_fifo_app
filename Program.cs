@@ -3,13 +3,16 @@ using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
 using FifoApi.Interface.ProductInterface;
+using FifoApi.Interface.SaleInterface;
 using FifoApi.Interface.StockInterface;
 using FifoApi.Interface.UserInterface;
 using FifoApi.Models;
 using FifoApi.Repositories.ProductRepository;
+using FifoApi.Repositories.SaleRepository;
 using FifoApi.Repositories.StockRepository;
 using FifoApi.Repositories.UserRepository;
 using FifoApi.Service.ProductService;
+using FifoApi.Service.SaleService;
 using FifoApi.Service.StockService;
 using FifoApi.Service.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -67,10 +70,10 @@ builder.Services.AddControllers()
         options.InvalidModelStateResponseFactory = context =>
         {
             var errors = context.ModelState
-                .Where(x => x.Value.Errors.Count > 0)
+                .Where(x => x.Value?.Errors.Count > 0)
                 .ToDictionary(
                     kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray()
                 );
 
             var operationResult = OperationResult<object>.BadRequest(
@@ -133,6 +136,9 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<ISaleRepository, SaleRepository>();
+builder.Services.AddScoped<ISaleService, SaleService>();
+builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

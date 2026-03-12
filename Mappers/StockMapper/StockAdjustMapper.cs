@@ -53,7 +53,8 @@ namespace FifoApi.Mappers.StockMapper
                         StockBatchId = alloc.StockId,
                         SaleItemId = saleItem.Id,
                         QtyOut = alloc.Qty,
-                        CostPrice = alloc.CostPrice
+                        CostPrice = alloc.CostPrice,
+                        MovementDate = sale.SaleDate
                     });
                 }
 

@@ -18,6 +18,7 @@ namespace FifoApi.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal CostPrice { get; set; }
+        public DateTime MovementDate { get; set; }
         public void ValidateQtyOut()
         {
             if (QtyOut <= 0)

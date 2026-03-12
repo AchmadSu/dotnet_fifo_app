@@ -15,7 +15,10 @@ namespace FifoApi.Mappers.StockMapper
             {
                 Id = movement.Id,
                 QtyOut = movement.QtyOut,
-                CostPrice = movement.CostPrice
+                CostPrice = movement.CostPrice,
+                UnitPrice = movement.SaleItem.SalePrice,
+                MovementDate = movement.MovementDate,
+                InvoiceNo = movement.SaleItem?.Sale?.InvoiceNo
             };
         }
     }

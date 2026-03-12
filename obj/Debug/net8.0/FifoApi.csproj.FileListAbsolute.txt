@@ -5,6 +5,8 @@ C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\FifoAp
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\FifoApi.runtimeconfig.json
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\FifoApi.dll
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\FifoApi.pdb
+C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\Azure.Identity.dll
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\Humanizer.dll
@@ -140,6 +142,7 @@ C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoAp
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.csproj.CoreCompileInputs.cache
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.sourcelink.json
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\staticwebassets\msbuild.FifoApi.Microsoft.AspNetCore.StaticWebAssets.props
@@ -154,6 +157,3 @@ C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\refint
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.pdb
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.genruntimeconfig.cache
 C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\ref\FifoApi.dll
-C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\obj\Debug\net8.0\FifoApi.sourcelink.json
-C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\AutoMapper.dll
-C:\Users\ASUS\Documents\practice\dotnet\fifo-app\FifoApi\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

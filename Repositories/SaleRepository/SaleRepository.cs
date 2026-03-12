@@ -19,10 +19,10 @@ namespace FifoApi.Repositories.SaleRepository
         }
         public async Task<Sale> CreateSaleAsync(Sale sale)
         {
-            var model = sale;
-            await _context.Sales.AddAsync(model);
+            sale.CalculateTotal();
+            await _context.Sales.AddAsync(sale);
             await _context.SaveChangesAsync();
-            return model;
+            return sale;
         }
 
         public Task<IQueryable<Sale>> GetAllSalesAsync(SaleQueryObject query)

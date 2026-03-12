@@ -172,8 +172,6 @@ namespace FifoApi.Service.SaleService
 
                     adjustQtyList.Add(stock.ToAdjustStockDTO(deductQty, tempId));
 
-                    stock.QtyRemaining -= deductQty;
-
                     qtyRemaining -= deductQty;
                 }
 

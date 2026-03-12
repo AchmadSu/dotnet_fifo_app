@@ -67,7 +67,11 @@ namespace FifoApi.Repositories.StockRepository
 
         public async Task<Stock?> GetStockByIdAsync(int id)
         {
-            return await _context.StockBatches.Include(m => m.StockMovements).FirstOrDefaultAsync(s => s.Id == id);
+            return await _context.StockBatches
+                .Include(s => s.StockMovements)
+                .ThenInclude(m => m.SaleItem)
+                .ThenInclude(i => i.Sale)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
         public async Task<Stock?> UpdateStockAsync(int id, UpdateStockDTO stockDTO)

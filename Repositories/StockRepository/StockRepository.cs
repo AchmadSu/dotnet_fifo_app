@@ -119,7 +119,7 @@ namespace FifoApi.Repositories.StockRepository
             if (data == null || data.Count == 0)
                 return false;
 
-            var ids = data.Select(x => x.Id).Distinct().ToList();
+            var ids = data.Select(x => x.StockId).Distinct().ToList();
 
             var existingIds = await _context.StockBatches
                 .Where(x => ids.Contains(x.Id))
@@ -139,7 +139,7 @@ namespace FifoApi.Repositories.StockRepository
             {
                 sql.Append($"WHEN \"Id\" = @id{i} THEN @qty{i} ");
 
-                parameters.Add(new Npgsql.NpgsqlParameter($"id{i}", item.Id));
+                parameters.Add(new Npgsql.NpgsqlParameter($"id{i}", item.StockId));
                 parameters.Add(new Npgsql.NpgsqlParameter($"qty{i}", item.Qty));
 
                 i++;

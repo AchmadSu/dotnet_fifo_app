@@ -23,19 +23,22 @@ namespace FifoApi.Service.SaleService
         private readonly ISaleRepository _saleRepo;
         private readonly IProductRepository _productRepo;
         private readonly IStockRepository _stockRepo;
+        private readonly IStockMovementRepository _stockMovementRepo;
         private readonly ApplicationDBContext _context;
         private readonly ILogger<SaleService> _logger;
         public SaleService(
             ISaleRepository saleRepo,
             IProductRepository productRepo,
             IStockRepository stockRepo,
+            IStockMovementRepository stockMovementRepo,
             ApplicationDBContext context,
             ILogger<SaleService> logger
         )
         {
             _saleRepo = saleRepo;
-            _stockRepo = stockRepo;
             _productRepo = productRepo;
+            _stockRepo = stockRepo;
+            _stockMovementRepo = stockMovementRepo;
             _context = context;
             _logger = logger;
         }
@@ -53,7 +56,6 @@ namespace FifoApi.Service.SaleService
                     return OperationResult<SaleDTO>.BadRequest("There are some or all products are not found");
                 }
 
-                var outOfStocks = new List<string>();
                 var saleItems = new List<SaleItem>();
                 var adjustQtyList = new List<AdjustStockDTO>();
 
@@ -97,6 +99,14 @@ namespace FifoApi.Service.SaleService
                 {
                     await trx.RollbackAsync();
                     return OperationResult<SaleDTO>.BadRequest("Failed to adjust stocks");
+                }
+
+                var stockMovements = createdSale.ToStockMovements(adjustQtyList);
+                var createdStockMovements = await _stockMovementRepo.CreateStockMovementsAsync(stockMovements);
+                if (createdStockMovements == null)
+                {
+                    await trx.RollbackAsync();
+                    return OperationResult<SaleDTO>.BadRequest("Failed to create stock movements");
                 }
 
                 await trx.CommitAsync();
@@ -149,6 +159,7 @@ namespace FifoApi.Service.SaleService
 
                 decimal totalPrice = 0;
                 int qtyRemaining = item.Qty;
+                var tempId = Guid.NewGuid();
 
                 foreach (var stock in productStocks)
                 {
@@ -159,7 +170,7 @@ namespace FifoApi.Service.SaleService
 
                     totalPrice += deductQty * stock.PurchasePrice;
 
-                    adjustQtyList.Add(stock.ToAdjustStockDTO(deductQty));
+                    adjustQtyList.Add(stock.ToAdjustStockDTO(deductQty, tempId));
 
                     stock.QtyRemaining -= deductQty;
 
@@ -172,7 +183,7 @@ namespace FifoApi.Service.SaleService
                     continue;
                 }
 
-                saleItems.Add(item.ToSaleItemFromCreate(totalPrice));
+                saleItems.Add(item.ToSaleItemFromCreate(totalPrice, tempId));
             }
 
             if (outOfStocks.Count > 0)

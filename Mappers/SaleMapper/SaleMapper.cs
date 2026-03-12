@@ -19,7 +19,7 @@ namespace FifoApi.Mappers.SaleMapper
             };
         }
 
-        public static SaleItem ToSaleItemFromCreate(this CreateSaleItemDTO saleDTO, decimal totalPrice)
+        public static SaleItem ToSaleItemFromCreate(this CreateSaleItemDTO saleDTO, decimal totalPrice, Guid tempId)
         {
             if (saleDTO.Qty <= 0)
                 throw new InvalidOperationException("Qty must be greater than zero");
@@ -28,7 +28,8 @@ namespace FifoApi.Mappers.SaleMapper
             {
                 ProductId = saleDTO.ProductId,
                 Qty = saleDTO.Qty,
-                SalePrice = Math.Round(totalPrice / saleDTO.Qty, 2)
+                SalePrice = Math.Round(totalPrice / saleDTO.Qty, 2),
+                TempId = tempId
             };
         }
 

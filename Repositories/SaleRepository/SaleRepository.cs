@@ -20,7 +20,7 @@ namespace FifoApi.Repositories.SaleRepository
         public async Task<Sale> CreateSaleAsync(Sale sale)
         {
             var model = sale;
-            await _context.AddAsync(model);
+            await _context.Sales.AddAsync(model);
             await _context.SaveChangesAsync();
             return model;
         }

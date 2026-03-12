@@ -18,6 +18,7 @@ namespace FifoApi.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal SalePrice { get; set; }
+        public Guid TempId { get; set; }
         public List<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
         public void ValidateQty()
         {

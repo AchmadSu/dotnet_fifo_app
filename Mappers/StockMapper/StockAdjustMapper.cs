@@ -9,12 +9,15 @@ namespace FifoApi.Mappers.StockMapper
 {
     public static class StockAdjustMapper
     {
-        public static AdjustStockDTO ToAdjustStockDTO(this Stock stock, int qty)
+        public static AdjustStockDTO ToAdjustStockDTO(this Stock stock, int qty, Guid tempId)
         {
             return new AdjustStockDTO
             {
-                Id = stock.Id,
-                Qty = qty
+                StockId = stock.Id,
+                ProductId = stock.ProductId,
+                Qty = qty,
+                CostPrice = stock.PurchasePrice,
+                TempSaleItemId = tempId
             };
         }
 
@@ -25,11 +28,37 @@ namespace FifoApi.Mappers.StockMapper
             {
                 result.AdjustStockDTOs.Add(new AdjustStockDTO
                 {
-                    Id = item.Id,
-                    Qty = item.Qty
+                    StockId = item.StockId,
+                    ProductId = item.ProductId,
+                    Qty = item.Qty,
+                    CostPrice = item.CostPrice,
+                    TempSaleItemId = item.TempSaleItemId
                 });
             }
             return result;
+        }
+
+        public static List<StockMovement> ToStockMovements(this Sale sale, List<AdjustStockDTO> allocation)
+        {
+            var stockMovements = new List<StockMovement>();
+            foreach (var saleItem in sale.SaleItems)
+            {
+                var itemAllocations = allocation
+                    .Where(x => x.TempSaleItemId == saleItem.TempId);
+
+                foreach (var alloc in itemAllocations)
+                {
+                    stockMovements.Add(new StockMovement
+                    {
+                        StockBatchId = alloc.StockId,
+                        SaleItemId = saleItem.Id,
+                        QtyOut = alloc.Qty,
+                        CostPrice = alloc.CostPrice
+                    });
+                }
+
+            }
+            return stockMovements;
         }
     }
 }

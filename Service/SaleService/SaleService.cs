@@ -14,6 +14,7 @@ using FifoApi.Interface.StockInterface;
 using FifoApi.Mappers.SaleMapper;
 using FifoApi.Mappers.StockMapper;
 using FifoApi.Models;
+using FifoApi.Service.Result;
 
 namespace FifoApi.Service.SaleService
 {
@@ -68,58 +69,16 @@ namespace FifoApi.Service.SaleService
                     .GroupBy(s => s.ProductId)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
-                foreach (var item in items)
-                {
-                    if (item.Qty <= 0)
-                    {
-                        await trx.RollbackAsync();
-                        return OperationResult<SaleDTO>.BadRequest("Qty must be greater than zero");
-                    }
+                var allocation = AllocateStocksFIFO(items, stockDict);
 
-                    if (!stockDict.TryGetValue(item.ProductId, out var productStocks))
-                    {
-                        outOfStocks.Add(item.ProductId.ToString());
-                        continue;
-                    }
-
-                    decimal totalPrice = 0;
-                    int qtyRequest = item.Qty;
-                    int qtyRequestRemaining = qtyRequest;
-
-                    foreach (var stock in productStocks)
-                    {
-
-                        if (qtyRequestRemaining > stock.QtyRemaining)
-                        {
-                            totalPrice += stock.QtyRemaining * stock.PurchasePrice;
-                            adjustQtyList.Add(stock.ToAdjustStockDTO(stock.QtyRemaining));
-                            qtyRequestRemaining -= stock.QtyRemaining;
-                        }
-                        else
-                        {
-                            totalPrice += qtyRequestRemaining * stock.PurchasePrice;
-                            adjustQtyList.Add(stock.ToAdjustStockDTO(qtyRequestRemaining));
-                            qtyRequestRemaining = 0;
-                            break;
-                        }
-                    }
-
-                    if (qtyRequestRemaining > 0)
-                    {
-                        outOfStocks.Add(item.ProductId.ToString());
-                        continue;
-                    }
-
-                    saleItems.Add(item.ToSaleItemFromCreate(totalPrice));
-                }
-
-                if (outOfStocks.Count > 0)
+                if (!allocation.Success)
                 {
                     await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest(
-                        "Insufficient stocks for products: " + string.Join(",", outOfStocks)
-                    );
+                    return OperationResult<SaleDTO>.BadRequest(allocation.ErrorMessage!);
                 }
+
+                saleItems = allocation.SaleItems;
+                adjustQtyList = allocation.AdjustStocks;
 
                 var nextSequence = await _saleRepo.GetNextInvoiceSequenceAsync("INV");
                 var invoice = InvoiceNoGenerator.Generate(
@@ -164,6 +123,66 @@ namespace FifoApi.Service.SaleService
         public Task<OperationResult<SaleDetailDTO?>> GetSaleByInvoiceAsync(string invoice)
         {
             throw new NotImplementedException();
+        }
+
+        private static StockAllocationResult AllocateStocksFIFO(
+            List<CreateSaleItemDTO> items,
+            Dictionary<int, List<Stock>> stockDict
+        )
+        {
+            var outOfStocks = new HashSet<string>();
+            var saleItems = new List<SaleItem>();
+            var adjustQtyList = new List<AdjustStockDTO>();
+
+            foreach (var item in items)
+            {
+                if (item.Qty <= 0)
+                {
+                    return StockAllocationResult.ErrorResult("Qty must be greater than zero");
+                }
+
+                if (!stockDict.TryGetValue(item.ProductId, out var productStocks))
+                {
+                    outOfStocks.Add(item.ProductId.ToString());
+                    continue;
+                }
+
+                decimal totalPrice = 0;
+                int qtyRemaining = item.Qty;
+
+                foreach (var stock in productStocks)
+                {
+                    if (qtyRemaining <= 0)
+                        break;
+
+                    var deductQty = Math.Min(stock.QtyRemaining, qtyRemaining);
+
+                    totalPrice += deductQty * stock.PurchasePrice;
+
+                    adjustQtyList.Add(stock.ToAdjustStockDTO(deductQty));
+
+                    stock.QtyRemaining -= deductQty;
+
+                    qtyRemaining -= deductQty;
+                }
+
+                if (qtyRemaining > 0)
+                {
+                    outOfStocks.Add(item.ProductId.ToString());
+                    continue;
+                }
+
+                saleItems.Add(item.ToSaleItemFromCreate(totalPrice));
+            }
+
+            if (outOfStocks.Count > 0)
+            {
+                return StockAllocationResult.ErrorResult(
+                    "Insufficient stocks for products: " + string.Join(", ", outOfStocks)
+                );
+            }
+
+            return StockAllocationResult.SuccessResult(saleItems, adjustQtyList);
         }
     }
 }

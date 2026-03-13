@@ -150,13 +150,30 @@ namespace FifoApi.Repositories.StockRepository
             }
 
             sql.Append("END ");
-            sql.Append($"WHERE \"Id\" IN ({string.Join(", ", ids)})");
+            sql.Append($"WHERE \"Id\" IN (");
+            for (int j = 0; j < ids.Count; j++)
+            {
+                if (j > 0) sql.Append(", ");
+                sql.Append($"@wid{j}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"wid{j}", ids[j]));
+            }
+            sql.Append(")");
             var affectedRows = await _context.Database.ExecuteSqlRawAsync(sql.ToString(), parameters);
 
             if (affectedRows != data.Count)
                 return false;
 
             return true;
+        }
+
+        public async Task<int> GetGrandTotalStockAsync(int productId)
+        {
+            return await _context.StockBatches
+            .AsNoTracking()
+            .Where(s => s.ProductId == productId && s.QtyRemaining > 0)
+            .SumAsync(
+                s => s.QtyRemaining
+            );
         }
     }
 }

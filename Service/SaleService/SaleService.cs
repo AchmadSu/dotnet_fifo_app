@@ -16,6 +16,7 @@ using FifoApi.Mappers.SaleMapper;
 using FifoApi.Mappers.StockMapper;
 using FifoApi.Models;
 using FifoApi.Service.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Service.SaleService
 {
@@ -45,93 +46,86 @@ namespace FifoApi.Service.SaleService
         }
         public async Task<OperationResult<SaleDTO>> CreateSaleAsync(CreateSaleDTO saleDTO)
         {
-            using var trx = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var items = saleDTO.Items;
-                var productIds = items.Select(x => x.ProductId).Distinct().ToList();
-                var products = await _productRepo.GetByIdsAsync(productIds);
-                if (products == null || products.Count != productIds.Count)
+            return await RetryHelper.RetryOperationWithTransactionAsync(
+                _context,
+                async () =>
                 {
-                    await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest("There are some or all products are not found");
-                }
-
-                var saleItems = new List<SaleItem>();
-                var adjustQtyList = new List<AdjustStockDTO>();
-
-                var stocks = await _stockRepo.GetAvailableStockAsync(productIds);
-
-                if (stocks == null || !stocks.Any())
-                {
-                    await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest("Stocks not found");
-                }
-
-                var stockDict = stocks
-                    .GroupBy(s => s.ProductId)
-                    .ToDictionary(g => g.Key, g => g.ToList());
-
-                var allocation = AllocateStocksFIFO(items, stockDict);
-
-                if (!allocation.Success)
-                {
-                    await trx.RollbackAsync();
-                    var outOfStockIds = allocation.OutOfStockIds;
-                    HashSet<string> outOfStockProductSKU = new HashSet<string>();
-                    foreach (var id in outOfStockIds)
+                    var items = saleDTO.Items;
+                    var productIds = items.Select(x => x.ProductId).Distinct().ToList();
+                    var products = await _productRepo.GetByIdsAsync(productIds);
+                    if (products == null || products.Count != productIds.Count)
                     {
-                        var selectedProduct = products.FirstOrDefault(p => p.Id == id);
-                        if (selectedProduct != null)
-                        {
-                            outOfStockProductSKU.Add(selectedProduct.SKU);
-                        }
+                        return OperationResult<SaleDTO>.BadRequest("There are some or all products are not found");
                     }
-                    string message = outOfStockProductSKU.Count > 0 ?
-                        "Insufficient stock for products: " + string.Join(", ", outOfStockProductSKU)
-                        : allocation.ErrorMessage!;
-                    return OperationResult<SaleDTO>.BadRequest(message);
-                }
 
-                saleItems = allocation.SaleItems;
-                adjustQtyList = allocation.AdjustStocks;
+                    var saleItems = new List<SaleItem>();
+                    var adjustQtyList = new List<AdjustStockDTO>();
 
-                var nextSequence = await _saleRepo.GetNextInvoiceSequenceAsync("INV");
-                var invoice = InvoiceNoGenerator.Generate(
-                    sequenceNumber: nextSequence
-                );
+                    var stocks = await _stockRepo.GetAvailableStockAsync(productIds);
 
-                var createdSale = await _saleRepo.CreateSaleAsync(saleDTO.ToSaleFromCreate(invoice, saleItems));
-                if (createdSale == null)
-                {
-                    await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest("Failed to create sales data");
-                }
+                    if (stocks == null || !stocks.Any())
+                    {
+                        return OperationResult<SaleDTO>.BadRequest("Stocks not found");
+                    }
 
-                var isSuccessAdjustStock = await _stockRepo.AdjustListStockQtyAsync(adjustQtyList.ToAdjustListStockQtyDTO(), "-");
-                if (!isSuccessAdjustStock)
-                {
-                    await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest("Failed to adjust stocks");
-                }
+                    var stockDict = stocks
+                        .GroupBy(s => s.ProductId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
 
-                var stockMovements = createdSale.ToStockMovements(adjustQtyList);
-                var createdStockMovements = await _stockMovementRepo.CreateStockMovementsAsync(stockMovements);
-                if (createdStockMovements == null)
-                {
-                    await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest("Failed to create stock movements");
-                }
+                    var allocation = await AllocateStocksFIFO(items, stockDict, _stockRepo);
 
-                await trx.CommitAsync();
-                return OperationResult<SaleDTO>.Ok(createdSale.ToSaleDTO());
-            }
-            catch (Exception e)
-            {
-                await trx.RollbackAsync();
-                _logger.LogError(e, "Error while creating sale");
-                return OperationResult<SaleDTO>.InternalServerError();
-            }
+                    if (!allocation.Success)
+                    {
+                        var outOfStockIds = allocation.OutOfStockIds;
+                        HashSet<string> outOfStockProductSKU = new HashSet<string>();
+                        foreach (var id in outOfStockIds)
+                        {
+                            var selectedProduct = products.FirstOrDefault(p => p.Id == id);
+                            if (selectedProduct != null)
+                            {
+                                outOfStockProductSKU.Add(selectedProduct.SKU);
+                            }
+                        }
+                        string message = outOfStockProductSKU.Count > 0 ?
+                            "Insufficient stock for products: " + string.Join(", ", outOfStockProductSKU)
+                            : allocation.ErrorMessage!;
+                        return OperationResult<SaleDTO>.BadRequest(message);
+                    }
+
+                    saleItems = allocation.SaleItems;
+                    adjustQtyList = allocation.AdjustStocks;
+
+                    var nextSequence = await _saleRepo.GetNextInvoiceSequenceAsync("INV");
+                    var invoice = InvoiceNoGenerator.Generate(
+                        sequenceNumber: nextSequence
+                    );
+
+                    var createdSale = await _saleRepo.CreateSaleAsync(saleDTO.ToSaleFromCreate(invoice, saleItems));
+                    if (createdSale == null)
+                    {
+                        return OperationResult<SaleDTO>.BadRequest("Failed to create sales data");
+                    }
+
+                    var isSuccessAdjustStock = await _stockRepo.AdjustListStockQtyAsync(adjustQtyList.ToAdjustListStockQtyDTO(), "-");
+                    if (!isSuccessAdjustStock)
+                    {
+                        return OperationResult<SaleDTO>.BadRequest("Failed to adjust stocks");
+                    }
+
+                    var stockMovements = createdSale.ToStockMovements(adjustQtyList);
+                    var createdStockMovements = await _stockMovementRepo.CreateStockMovementsAsync(stockMovements);
+                    if (createdStockMovements == null)
+                    {
+                        return OperationResult<SaleDTO>.BadRequest("Failed to create stock movements");
+                    }
+
+                    return OperationResult<SaleDTO>.Ok(createdSale.ToSaleDTO());
+                },
+                maxRetry: 3,
+                retryDelayMs: 50,
+                logger: _logger,
+                transientExceptionFilter: e => e is DbUpdateConcurrencyException
+            );
         }
 
         public async Task<OperationResult<PagedResult<SaleDTO>>> GetAllSaleAsync(SaleQueryObject query)
@@ -196,9 +190,10 @@ namespace FifoApi.Service.SaleService
             }
         }
 
-        private static StockAllocationResult AllocateStocksFIFO(
+        private static async Task<StockAllocationResult> AllocateStocksFIFO(
             List<CreateSaleItemDTO> items,
-            Dictionary<int, List<Stock>> stockDict
+            Dictionary<int, List<Stock>> stockDict,
+            IStockRepository stockRepo
         )
         {
             var outOfStocks = new HashSet<int>();
@@ -220,6 +215,13 @@ namespace FifoApi.Service.SaleService
 
                 decimal totalPrice = 0;
                 int qtyRemaining = item.Qty;
+                var totalGrandStock = await stockRepo.GetGrandTotalStockAsync(item.ProductId);
+                if (totalGrandStock < qtyRemaining)
+                {
+                    outOfStocks.Add(item.ProductId);
+                    continue;
+                }
+
                 var tempId = Guid.NewGuid();
 
                 foreach (var stock in productStocks)

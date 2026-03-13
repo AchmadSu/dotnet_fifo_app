@@ -16,6 +16,7 @@ namespace FifoApi.Interface.StockInterface
         Task<Stock?> UpdateStockAsync(int id, UpdateStockDTO stockDTO);
         Task<Stock?> DeleteStockAsync(int id);
         Task<List<Stock>> GetAvailableStockAsync(List<int> productIds);
+        Task<int> GetGrandTotalStockAsync(int productId);
         Task<bool> AdjustStockQtyAsync(int id, string opr, int qty = 0);
         Task<bool> AdjustListStockQtyAsync(AdjustListStockQtyDTO adjustDTO, string opr);
     }

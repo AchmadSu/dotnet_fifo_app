@@ -116,6 +116,11 @@ namespace FifoApi.Service.StockService
                 var stock = await _stockRepo.GetStockByIdAsync(id);
                 if (stock == null) return OperationResult<StockDTO?>.NotFound("Stock not found");
 
+                if (stock.QtyIn < stockDTO.QtyRemaining)
+                {
+                    return OperationResult<StockDTO?>.BadRequest("Qty Remaining must be less or equal to Qty In!");
+                }
+
                 var updateStock = await _stockRepo.UpdateStockAsync(id, stockDTO);
 
                 if (updateStock == null)

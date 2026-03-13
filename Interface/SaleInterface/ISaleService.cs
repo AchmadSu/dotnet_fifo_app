@@ -10,7 +10,7 @@ namespace FifoApi.Interface.SaleInterface
 {
     public interface ISaleService
     {
-        Task<OperationResult<PagedResult<SaleDTO>>> GetAllSale(SaleQueryObject query);
+        Task<OperationResult<PagedResult<SaleDTO>>> GetAllSaleAsync(SaleQueryObject query);
         Task<OperationResult<SaleDetailDTO?>> GetSaleByIdAsync(int id);
         Task<OperationResult<SaleDetailDTO?>> GetSaleByInvoiceAsync(string invoice);
         Task<OperationResult<SaleDTO>> CreateSaleAsync(CreateSaleDTO saleDTO);

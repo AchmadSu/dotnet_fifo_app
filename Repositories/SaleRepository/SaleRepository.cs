@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Data;
+using FifoApi.Helpers;
 using FifoApi.Helpers.SaleHelper;
 using FifoApi.Interface.SaleInterface;
 using FifoApi.Models;
@@ -25,19 +26,29 @@ namespace FifoApi.Repositories.SaleRepository
             return sale;
         }
 
-        public Task<IQueryable<Sale>> GetAllSalesAsync(SaleQueryObject query)
+        public async Task<IQueryable<Sale>> GetAllSalesAsync(SaleQueryObject query)
         {
-            throw new NotImplementedException();
+            var sales = _context.Sales
+            .Include(x => x.SaleItems)
+            .AsQueryable();
+            sales = DynamicFilterBuilder.ApplyFilters(sales, query);
+            return sales;
         }
 
-        public Task<Sale?> GetByIdAsync(int id)
+        public async Task<Sale?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Sales
+            .Include(s => s.SaleItems)
+            .ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public Task<Sale?> GetByInvoiceAsync(string invoice)
+        public async Task<Sale?> GetByInvoiceAsync(string invoice)
         {
-            throw new NotImplementedException();
+            return await _context.Sales
+                .Include(s => s.SaleItems)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(s => s.InvoiceNo == invoice);
         }
 
         public async Task<int> GetNextInvoiceSequenceAsync(string prefix)

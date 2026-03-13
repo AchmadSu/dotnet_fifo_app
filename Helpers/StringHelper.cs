@@ -63,5 +63,16 @@ namespace FifoApi.Helpers
 
             return string.Join("-", segments);
         }
+
+        public static string NormalizeInvoice(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            input = input.ToUpperInvariant();
+            input = Regex.Replace(input, @"[^A-Z0-9-]", "");
+
+            return input;
+        }
     }
 }

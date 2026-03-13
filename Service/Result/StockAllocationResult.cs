@@ -13,16 +13,19 @@ namespace FifoApi.Service.Result
             bool success,
             string? errorMessage = null,
             List<SaleItem>? saleItems = default,
-            List<AdjustStockDTO>? adjustStocks = default
+            List<AdjustStockDTO>? adjustStocks = default,
+            HashSet<int>? outOfStockIds = default
         )
         {
             Success = success;
             ErrorMessage = errorMessage;
             SaleItems = saleItems ?? [];
             AdjustStocks = adjustStocks ?? [];
+            OutOfStockIds = outOfStockIds ?? [];
         }
         public bool Success { get; set; }
         public string? ErrorMessage { get; set; }
+        public HashSet<int> OutOfStockIds { get; set; } = new();
 
         public List<SaleItem> SaleItems { get; } = new();
         public List<AdjustStockDTO> AdjustStocks { get; } = new();
@@ -35,9 +38,12 @@ namespace FifoApi.Service.Result
             return new StockAllocationResult(true, null, saleItems, adjustStocks);
         }
 
-        public static StockAllocationResult ErrorResult(string message = "Unknown stock allocation FIFO error")
+        public static StockAllocationResult ErrorResult(
+            string message = "Unknown stock allocation FIFO error",
+            HashSet<int>? outOfStockIds = default
+        )
         {
-            return new StockAllocationResult(false, message);
+            return new StockAllocationResult(false, message, null, null, outOfStockIds);
         }
     }
 }

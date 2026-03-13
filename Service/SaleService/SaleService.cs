@@ -6,6 +6,7 @@ using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.DTOs.SaleDTO;
 using FifoApi.DTOs.StockBatchesDTO;
+using FifoApi.Extensions;
 using FifoApi.Helpers;
 using FifoApi.Helpers.SaleHelper;
 using FifoApi.Interface.ProductInterface;
@@ -76,7 +77,20 @@ namespace FifoApi.Service.SaleService
                 if (!allocation.Success)
                 {
                     await trx.RollbackAsync();
-                    return OperationResult<SaleDTO>.BadRequest(allocation.ErrorMessage!);
+                    var outOfStockIds = allocation.OutOfStockIds;
+                    HashSet<string> outOfStockProductSKU = new HashSet<string>();
+                    foreach (var id in outOfStockIds)
+                    {
+                        var selectedProduct = products.FirstOrDefault(p => p.Id == id);
+                        if (selectedProduct != null)
+                        {
+                            outOfStockProductSKU.Add(selectedProduct.SKU);
+                        }
+                    }
+                    string message = outOfStockProductSKU.Count > 0 ?
+                        "Insufficient stock for products: " + string.Join(", ", outOfStockProductSKU)
+                        : allocation.ErrorMessage!;
+                    return OperationResult<SaleDTO>.BadRequest(message);
                 }
 
                 saleItems = allocation.SaleItems;
@@ -120,19 +134,66 @@ namespace FifoApi.Service.SaleService
             }
         }
 
-        public Task<OperationResult<PagedResult<SaleDTO>>> GetAllSale(SaleQueryObject query)
+        public async Task<OperationResult<PagedResult<SaleDTO>>> GetAllSaleAsync(SaleQueryObject query)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var salesQuery = await _saleRepo.GetAllSalesAsync(query);
+                if (salesQuery == null || salesQuery.Count() <= 0)
+                {
+                    return OperationResult<PagedResult<SaleDTO>>.NotFound("Sales not found");
+                }
+                var pagedResult = await salesQuery.ToPagedResultAsync(
+                    query.PageNumber,
+                    query.PageSize,
+                    s => s.ToSaleDTO()
+                );
+                return OperationResult<PagedResult<SaleDTO>>.Ok(pagedResult);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting sales");
+                return OperationResult<PagedResult<SaleDTO>>.InternalServerError();
+            }
         }
 
-        public Task<OperationResult<SaleDetailDTO?>> GetSaleByIdAsync(int id)
+        public async Task<OperationResult<SaleDetailDTO?>> GetSaleByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var sale = await _saleRepo.GetByIdAsync(id);
+                if (sale == null)
+                {
+                    return OperationResult<SaleDetailDTO?>.NotFound("Data not found");
+                }
+                var saleDTO = sale.ToSaleDetailDTO();
+                return OperationResult<SaleDetailDTO?>.Ok(saleDTO);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting sale by id");
+                return OperationResult<SaleDetailDTO?>.InternalServerError();
+            }
         }
 
-        public Task<OperationResult<SaleDetailDTO?>> GetSaleByInvoiceAsync(string invoice)
+        public async Task<OperationResult<SaleDetailDTO?>> GetSaleByInvoiceAsync(string invoice)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var invNormalize = StringHelper.NormalizeInvoice(invoice);
+                var sale = await _saleRepo.GetByInvoiceAsync(invNormalize);
+                if (sale == null)
+                {
+                    return OperationResult<SaleDetailDTO?>.NotFound("Data not found");
+                }
+                var saleDTO = sale.ToSaleDetailDTO();
+                return OperationResult<SaleDetailDTO?>.Ok(saleDTO);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting sale by invoice number");
+                return OperationResult<SaleDetailDTO?>.InternalServerError();
+            }
         }
 
         private static StockAllocationResult AllocateStocksFIFO(
@@ -140,7 +201,7 @@ namespace FifoApi.Service.SaleService
             Dictionary<int, List<Stock>> stockDict
         )
         {
-            var outOfStocks = new HashSet<string>();
+            var outOfStocks = new HashSet<int>();
             var saleItems = new List<SaleItem>();
             var adjustQtyList = new List<AdjustStockDTO>();
 
@@ -148,12 +209,12 @@ namespace FifoApi.Service.SaleService
             {
                 if (item.Qty <= 0)
                 {
-                    return StockAllocationResult.ErrorResult("Qty must be greater than zero");
+                    return StockAllocationResult.ErrorResult("Qty must be greater than zero", null);
                 }
 
                 if (!stockDict.TryGetValue(item.ProductId, out var productStocks))
                 {
-                    outOfStocks.Add(item.ProductId.ToString());
+                    outOfStocks.Add(item.ProductId);
                     continue;
                 }
 
@@ -177,7 +238,7 @@ namespace FifoApi.Service.SaleService
 
                 if (qtyRemaining > 0)
                 {
-                    outOfStocks.Add(item.ProductId.ToString());
+                    outOfStocks.Add(item.ProductId);
                     continue;
                 }
 
@@ -187,7 +248,8 @@ namespace FifoApi.Service.SaleService
             if (outOfStocks.Count > 0)
             {
                 return StockAllocationResult.ErrorResult(
-                    "Insufficient stocks for products: " + string.Join(", ", outOfStocks)
+                    "Insufficient stocks",
+                    outOfStocks
                 );
             }
 

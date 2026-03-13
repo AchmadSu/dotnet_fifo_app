@@ -65,7 +65,7 @@ namespace FifoApi.Service.ProductService
             try
             {
                 var productsQuery = await _productRepo.GetAllProductAsync(queryObject);
-                if (productsQuery == null || productsQuery.ToArray().Length == 0)
+                if (productsQuery == null || productsQuery.Count() <= 0)
                 {
                     return OperationResult<PagedResult<ProductDTO>>.NotFound("Data not found");
                 }

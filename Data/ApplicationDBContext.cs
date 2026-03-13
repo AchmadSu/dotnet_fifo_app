@@ -35,6 +35,22 @@ namespace FifoApi.Data
             builder.Entity<Sale>()
                 .HasIndex(s => s.InvoiceNo)
                 .IsUnique();
+            builder.Entity<SaleItem>()
+                .HasOne(s => s.Sale)
+                .WithMany(s => s.SaleItems)
+                .HasForeignKey(s => s.SaleId);
+            builder.Entity<StockMovement>()
+                .HasOne(m => m.StockBatch)
+                .WithMany(s => s.StockMovements)
+                .HasForeignKey(m => m.StockBatchId);
+            builder.Entity<StockMovement>()
+                .HasOne(m => m.SaleItem)
+                .WithMany(s => s.StockMovements)
+                .HasForeignKey(m => m.SaleItemId);
+            builder.Entity<StockMovement>()
+            .HasIndex(m => m.StockBatchId);
+            builder.Entity<StockMovement>()
+            .HasIndex(m => m.SaleItemId);
             List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole

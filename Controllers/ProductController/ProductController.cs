@@ -69,12 +69,12 @@ namespace FifoApi.Controllers.ProductController
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unexpected error while getting products");
+                _logger.LogError(e, "Unexpected error while getting product by id");
                 return this.ToErrorActionResult();
             }
         }
 
-        [HttpGet("{sku}")]
+        [HttpGet("sku/{sku}")]
         [Authorize]
         public async Task<IActionResult> GetBySKU(string sku)
         {
@@ -85,7 +85,7 @@ namespace FifoApi.Controllers.ProductController
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unexpected error while getting products");
+                _logger.LogError(e, "Unexpected error while getting product by sku");
                 return this.ToErrorActionResult();
             }
         }

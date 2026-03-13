@@ -8,8 +8,9 @@ namespace FifoApi.DTOs.SaleDTO
     public class SaleItemDTO
     {
         public int Id { get; set; }
+        public int ProductId { get; set; }
         public string? SKU { get; set; }
-        public string? Name { get; set; }
+        public string? ProductName { get; set; }
         public int Qty { get; set; }
         public decimal SalePrice { get; set; }
     }

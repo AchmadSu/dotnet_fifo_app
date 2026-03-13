@@ -11,5 +11,6 @@ namespace FifoApi.DTOs.SaleDTO
         public string? InvoiceNo { get; set; } = string.Empty;
         public DateTime SaleDate { get; set; }
         public decimal TotalAmount { get; set; }
+        public int TotalQty { get; set; }
     }
 }

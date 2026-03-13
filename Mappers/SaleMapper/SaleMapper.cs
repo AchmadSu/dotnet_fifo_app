@@ -40,7 +40,34 @@ namespace FifoApi.Mappers.SaleMapper
                 Id = sale.Id,
                 InvoiceNo = sale.InvoiceNo,
                 SaleDate = sale.SaleDate,
-                TotalAmount = sale.TotalAmount
+                TotalAmount = sale.TotalAmount,
+                TotalQty = sale.SaleItems.Sum(s => s.Qty)
+            };
+        }
+
+        public static SaleItemDTO ToSaleItemDTO(this SaleItem item)
+        {
+            return new SaleItemDTO
+            {
+                Id = item.Id,
+                ProductId = item.ProductId,
+                SKU = item.Product?.SKU,
+                ProductName = item.Product?.Name,
+                Qty = item.Qty,
+                SalePrice = item.SalePrice
+            };
+        }
+
+        public static SaleDetailDTO ToSaleDetailDTO(this Sale sale)
+        {
+            return new SaleDetailDTO
+            {
+                Id = sale.Id,
+                InvoiceNo = sale.InvoiceNo,
+                SaleDate = sale.SaleDate,
+                TotalAmount = sale.TotalAmount,
+                TotalQty = sale.SaleItems.Sum(s => s.Qty),
+                SaleItems = sale.SaleItems.Select(i => i.ToSaleItemDTO()).ToList()
             };
         }
     }

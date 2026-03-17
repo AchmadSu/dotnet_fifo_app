@@ -12,7 +12,7 @@ namespace FifoApi.DTOs.SaleDTO
         [Range(typeof(int), "1", "99999999", ErrorMessage = "Invalid Product Id")]
         public int ProductId { get; set; }
         [Required]
-        [Range(typeof(int), "1", "99999999", ErrorMessage = "Qty must be between 0.00 and 99999999")]
+        [Range(typeof(int), "1", "99999999", ErrorMessage = "Qty must be between 1 and 99999999")]
         public int Qty { get; set; }
     }
 }

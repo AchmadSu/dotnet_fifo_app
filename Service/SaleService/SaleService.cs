@@ -77,19 +77,24 @@ namespace FifoApi.Service.SaleService
                     if (!allocation.Success)
                     {
                         var outOfStockIds = allocation.OutOfStockIds;
-                        HashSet<string> outOfStockProductSKU = new HashSet<string>();
-                        foreach (var id in outOfStockIds)
+                        if (outOfStockIds != null && outOfStockIds.Count > 0)
                         {
-                            var selectedProduct = products.FirstOrDefault(p => p.Id == id);
-                            if (selectedProduct != null)
+                            HashSet<string> outOfStockProductName = new HashSet<string>();
+                            foreach (var id in outOfStockIds)
                             {
-                                outOfStockProductSKU.Add(selectedProduct.SKU);
+                                var selectedProduct = products.FirstOrDefault(p => p.Id == id);
+                                if (selectedProduct != null)
+                                {
+                                    outOfStockProductName.Add(selectedProduct.Name);
+                                }
                             }
+                            var outOfStockObject = new Dictionary<string, HashSet<string>>
+                            {
+                                ["products"] = outOfStockProductName
+                            };
+                            return OperationResult<SaleDTO>.BadRequest(allocation.ErrorMessage!, outOfStockObject);
                         }
-                        string message = outOfStockProductSKU.Count > 0 ?
-                            "Insufficient stock for products: " + string.Join(", ", outOfStockProductSKU)
-                            : allocation.ErrorMessage!;
-                        return OperationResult<SaleDTO>.BadRequest(message);
+                        return OperationResult<SaleDTO>.BadRequest(allocation.ErrorMessage!);
                     }
 
                     saleItems = allocation.SaleItems;

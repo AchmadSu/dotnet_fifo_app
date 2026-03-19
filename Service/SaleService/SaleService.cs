@@ -50,7 +50,7 @@ namespace FifoApi.Service.SaleService
                 _context,
                 async () =>
                 {
-                    var items = saleDTO.Items;
+                    var items = SaleHelper.MergeItems(saleDTO.Items);
                     var productIds = items.Select(x => x.ProductId).Distinct().ToList();
                     var products = await _productRepo.GetByIdsAsync(productIds);
                     if (products == null || products.Count != productIds.Count)

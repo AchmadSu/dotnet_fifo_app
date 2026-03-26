@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.Interface.CacheInterface;
 
-namespace FifoApi.Helpers.ProductHelper
+namespace FifoApi.Infrastructure.Cache.Products
 {
     public class ProductCacheHelper : IProductCacheHelper
     {
         private readonly ICacheService _cache;
-        private readonly string prefix = "products";
+        private const string prefix = CacheKeys.Products;
         public ProductCacheHelper(ICacheService cache)
         {
             _cache = cache;

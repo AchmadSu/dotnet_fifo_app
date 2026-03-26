@@ -6,8 +6,8 @@ using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
 using FifoApi.Extensions;
 using FifoApi.Helpers;
-using FifoApi.Helpers.CacheHelper;
 using FifoApi.Helpers.ProductHelper;
+using FifoApi.Infrastructure.Cache;
 using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Mappers.Paginate;
@@ -20,6 +20,7 @@ namespace FifoApi.Service.ProductService
         private readonly IProductRepository _productRepo;
         private readonly ICacheService _cache;
         private readonly IProductCacheHelper _productCacheHelper;
+        private const string cachePrefix = CacheKeys.Products;
         private readonly ILogger<ProductService> _logger;
         public ProductService(
             IProductRepository productRepo,
@@ -73,7 +74,7 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
-                var cacheKey = CacheKeyHelper.GenerateListKey("products", queryObject);
+                var cacheKey = CacheKeyHelper.GenerateListKey(cachePrefix, queryObject);
                 var cached = await _cache.GetTAsync<PagedResult<ProductDTO>>(cacheKey);
 
                 if (cached != null)
@@ -105,7 +106,7 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
-                var cacheKey = $"products:detail:{id}";
+                var cacheKey = $"{cachePrefix}:detail:{id}";
                 var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
                 if (cached != null)
                     return OperationResult<ProductDetailDTO?>.Ok(cached);
@@ -133,7 +134,7 @@ namespace FifoApi.Service.ProductService
             {
                 var normalizeSKU = StringHelper.NormalizeSku(sku);
 
-                var cacheKey = $"products:sku:{normalizeSKU}";
+                var cacheKey = $"{cachePrefix}:sku:{normalizeSKU}";
                 var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
                 if (cached != null)
                     return OperationResult<ProductDetailDTO?>.Ok(cached);

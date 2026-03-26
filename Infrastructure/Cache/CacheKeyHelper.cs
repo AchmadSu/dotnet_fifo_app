@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FifoApi.Attributes;
 
-namespace FifoApi.Helpers.CacheHelper
+namespace FifoApi.Infrastructure.Cache
 {
     public static class CacheKeyHelper
     {

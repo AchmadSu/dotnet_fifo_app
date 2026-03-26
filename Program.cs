@@ -2,7 +2,7 @@ using System.Security.Cryptography.Xml;
 using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
-using FifoApi.Helpers.ProductHelper;
+using FifoApi.Infrastructure.Cache.Products;
 using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;

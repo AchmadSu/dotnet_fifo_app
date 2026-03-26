@@ -6,24 +6,31 @@ using FifoApi.DTOs;
 using FifoApi.DTOs.ProductDTO;
 using FifoApi.Extensions;
 using FifoApi.Helpers;
+using FifoApi.Helpers.CacheHelper;
 using FifoApi.Helpers.ProductHelper;
+using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Mappers.Paginate;
 using FifoApi.Mappers.ProductMapper;
-using FifoApi.Models;
 
 namespace FifoApi.Service.ProductService
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepo;
+        private readonly ICacheService _cache;
+        private readonly IProductCacheHelper _productCacheHelper;
         private readonly ILogger<ProductService> _logger;
         public ProductService(
             IProductRepository productRepo,
+            ICacheService cache,
+            IProductCacheHelper productCacheHelper,
             ILogger<ProductService> logger
         )
         {
             _productRepo = productRepo;
+            _cache = cache;
+            _productCacheHelper = productCacheHelper;
             _logger = logger;
         }
         public async Task<OperationResult<ProductDTO>> CreateAsync(CreateProductDTO productDTO)
@@ -49,6 +56,8 @@ namespace FifoApi.Service.ProductService
 
                 var createdProduct = await _productRepo.CreateProductAsync(productDTO.ToProductFromCreateDTO(sku));
 
+                await _productCacheHelper.InvalidateListAsync();
+
                 return OperationResult<ProductDTO>.Ok(
                     createdProduct.ToProductDTO()
                 );
@@ -64,6 +73,12 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
+                var cacheKey = CacheKeyHelper.GenerateListKey("products", queryObject);
+                var cached = await _cache.GetTAsync<PagedResult<ProductDTO>>(cacheKey);
+
+                if (cached != null)
+                    return OperationResult<PagedResult<ProductDTO>>.Ok(cached);
+
                 var productsQuery = await _productRepo.GetAllProductAsync(queryObject);
                 if (productsQuery == null || productsQuery.Count() <= 0)
                 {
@@ -74,6 +89,9 @@ namespace FifoApi.Service.ProductService
                     queryObject.PageSize,
                     p => p.ToProductDTO()
                 );
+
+                await _cache.SetAsync(cacheKey, pagedResult, TimeSpan.FromMinutes(10));
+
                 return OperationResult<PagedResult<ProductDTO>>.Ok(pagedResult);
             }
             catch (Exception e)
@@ -87,12 +105,19 @@ namespace FifoApi.Service.ProductService
         {
             try
             {
+                var cacheKey = $"products:detail:{id}";
+                var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
+                if (cached != null)
+                    return OperationResult<ProductDetailDTO?>.Ok(cached);
+
                 var product = await _productRepo.GetByIdAsync(id);
                 if (product == null)
                 {
                     return OperationResult<ProductDetailDTO?>.NotFound("Data not found");
                 }
+
                 var productDTO = product.ToProductDetailDTO();
+                await _cache.SetAsync(cacheKey, productDTO, TimeSpan.FromMinutes(10));
                 return OperationResult<ProductDetailDTO?>.Ok(productDTO);
             }
             catch (Exception e)
@@ -107,12 +132,20 @@ namespace FifoApi.Service.ProductService
             try
             {
                 var normalizeSKU = StringHelper.NormalizeSku(sku);
+
+                var cacheKey = $"products:sku:{normalizeSKU}";
+                var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
+                if (cached != null)
+                    return OperationResult<ProductDetailDTO?>.Ok(cached);
+
                 var product = await _productRepo.GetBySKUAsync(normalizeSKU);
                 if (product == null)
                 {
                     return OperationResult<ProductDetailDTO?>.NotFound("Data not found");
                 }
+
                 var productDTO = product.ToProductDetailDTO();
+                await _cache.SetAsync(cacheKey, productDTO, TimeSpan.FromMinutes(10));
                 return OperationResult<ProductDetailDTO?>.Ok(productDTO);
             }
             catch (Exception e)
@@ -139,6 +172,8 @@ namespace FifoApi.Service.ProductService
                 {
                     return OperationResult<ProductDTO?>.BadRequest("Product to update not found!");
                 }
+
+                await _productCacheHelper.InvalidateAllAsync(id, StringHelper.NormalizeSku(updateProduct.SKU));
 
                 return OperationResult<ProductDTO?>.Ok(
                     updateProduct.ToProductDTO()

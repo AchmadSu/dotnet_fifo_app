@@ -2,6 +2,8 @@ using System.Security.Cryptography.Xml;
 using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
+using FifoApi.Helpers.ProductHelper;
+using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;
 using FifoApi.Interface.StockInterface;
@@ -11,6 +13,7 @@ using FifoApi.Repositories.ProductRepository;
 using FifoApi.Repositories.SaleRepository;
 using FifoApi.Repositories.StockRepository;
 using FifoApi.Repositories.UserRepository;
+using FifoApi.Service.CacheService;
 using FifoApi.Service.ProductService;
 using FifoApi.Service.SaleService;
 using FifoApi.Service.StockService;
@@ -22,6 +25,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +100,12 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     );
 });
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration["Redis:Connection"];
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -139,6 +149,8 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<ISaleRepository, SaleRepository>();
 builder.Services.AddScoped<ISaleService, SaleService>();
 builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
+builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<IProductCacheHelper, ProductCacheHelper>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

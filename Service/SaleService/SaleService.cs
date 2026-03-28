@@ -9,6 +9,8 @@ using FifoApi.DTOs.StockBatchesDTO;
 using FifoApi.Extensions;
 using FifoApi.Helpers;
 using FifoApi.Helpers.SaleHelper;
+using FifoApi.Infrastructure.Cache;
+using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;
 using FifoApi.Interface.StockInterface;
@@ -27,6 +29,9 @@ namespace FifoApi.Service.SaleService
         private readonly IStockRepository _stockRepo;
         private readonly IStockMovementRepository _stockMovementRepo;
         private readonly ApplicationDBContext _context;
+        private readonly ICacheService _cache;
+        private const string cachePrefix = CacheKeys.Sales;
+        private readonly ISaleCacheHelper _saleCacheHelper;
         private readonly ILogger<SaleService> _logger;
         public SaleService(
             ISaleRepository saleRepo,
@@ -34,6 +39,8 @@ namespace FifoApi.Service.SaleService
             IStockRepository stockRepo,
             IStockMovementRepository stockMovementRepo,
             ApplicationDBContext context,
+            ICacheService cache,
+            ISaleCacheHelper saleCacheHelper,
             ILogger<SaleService> logger
         )
         {
@@ -42,6 +49,8 @@ namespace FifoApi.Service.SaleService
             _stockRepo = stockRepo;
             _stockMovementRepo = stockMovementRepo;
             _context = context;
+            _cache = cache;
+            _saleCacheHelper = saleCacheHelper;
             _logger = logger;
         }
         public async Task<OperationResult<SaleDTO>> CreateSaleAsync(CreateSaleDTO saleDTO)
@@ -124,6 +133,8 @@ namespace FifoApi.Service.SaleService
                         return OperationResult<SaleDTO>.BadRequest("Failed to create stock movements");
                     }
 
+                    await _saleCacheHelper.InvalidateListAsync();
+
                     return OperationResult<SaleDTO>.Ok(createdSale.ToSaleDTO());
                 },
                 maxRetry: 3,
@@ -137,6 +148,17 @@ namespace FifoApi.Service.SaleService
         {
             try
             {
+                var cacheKey = CacheKeyHelper.GenerateListKey(cachePrefix, query);
+                var cached = await _cache.GetTAsync<PagedResult<SaleDTO>>(cacheKey);
+
+                if (cached != null)
+                {
+                    _logger.LogInformation("CACHE HIT: {CacheKey}", cacheKey);
+                    return OperationResult<PagedResult<SaleDTO>>.Ok(cached);
+                }
+
+                _logger.LogInformation("CACHE MISS: {CacheKey}", cacheKey);
+
                 var salesQuery = await _saleRepo.GetAllSalesAsync(query);
                 if (salesQuery == null || salesQuery.Count() <= 0)
                 {
@@ -147,6 +169,9 @@ namespace FifoApi.Service.SaleService
                     query.PageSize,
                     s => s.ToSaleDTO()
                 );
+
+                await _cache.SetAsync(cacheKey, pagedResult, TimeSpan.FromMinutes(10));
+
                 return OperationResult<PagedResult<SaleDTO>>.Ok(pagedResult);
             }
             catch (Exception e)

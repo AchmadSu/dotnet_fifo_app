@@ -3,6 +3,7 @@ using FifoApi.Data;
 using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
 using FifoApi.Infrastructure.Cache.Products;
+using FifoApi.Infrastructure.Cache.Sales;
 using FifoApi.Interface.CacheInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;
@@ -151,6 +152,7 @@ builder.Services.AddScoped<ISaleService, SaleService>();
 builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IProductCacheHelper, ProductCacheHelper>();
+builder.Services.AddScoped<ISaleCacheHelper, SaleCacheHelper>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

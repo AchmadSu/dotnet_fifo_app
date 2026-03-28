@@ -78,10 +78,15 @@ namespace FifoApi.Service.ProductService
                 var cached = await _cache.GetTAsync<PagedResult<ProductDTO>>(cacheKey);
 
                 if (cached != null)
+                {
+                    _logger.LogInformation("CACHE HIT: {CacheKey}", cacheKey);
                     return OperationResult<PagedResult<ProductDTO>>.Ok(cached);
+                }
+
+                _logger.LogInformation("CACHE MISS: {CacheKey}", cacheKey);
 
                 var productsQuery = await _productRepo.GetAllProductAsync(queryObject);
-                if (productsQuery == null || productsQuery.Count() <= 0)
+                if (productsQuery == null || !productsQuery.Any())
                 {
                     return OperationResult<PagedResult<ProductDTO>>.NotFound("Data not found");
                 }
@@ -109,7 +114,12 @@ namespace FifoApi.Service.ProductService
                 var cacheKey = $"{cachePrefix}:detail:{id}";
                 var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
                 if (cached != null)
+                {
+                    _logger.LogInformation("CACHE HIT: {CacheKey}", cacheKey);
                     return OperationResult<ProductDetailDTO?>.Ok(cached);
+                }
+
+                _logger.LogInformation("CACHE MISS: {CacheKey}", cacheKey);
 
                 var product = await _productRepo.GetByIdAsync(id);
                 if (product == null)
@@ -137,7 +147,12 @@ namespace FifoApi.Service.ProductService
                 var cacheKey = $"{cachePrefix}:sku:{normalizeSKU}";
                 var cached = await _cache.GetTAsync<ProductDetailDTO>(cacheKey);
                 if (cached != null)
+                {
+                    _logger.LogInformation("CACHE HIT: {CacheKey}", cacheKey);
                     return OperationResult<ProductDetailDTO?>.Ok(cached);
+                }
+
+                _logger.LogInformation("CACHE MISS: {CacheKey}", cacheKey);
 
                 var product = await _productRepo.GetBySKUAsync(normalizeSKU);
                 if (product == null)

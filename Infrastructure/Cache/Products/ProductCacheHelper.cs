@@ -34,7 +34,28 @@ namespace FifoApi.Infrastructure.Cache.Products
         public async Task InvalidateSKUAsync(string sku)
         {
             await _cache.RemoveByPrefixAsync($"{prefix}:sku:{sku}");
+        }
 
+        public async Task<int> GetListVersionAsync()
+        {
+            var version = await _cache.GetTAsync<int?>($"{prefix}:list:version");
+            if (version == null)
+            {
+                version = 1;
+                await _cache.SetAsync($"{prefix}:list:version", version);
+            }
+
+            return version.Value;
+        }
+
+        public async Task IncrementListVersionAsync()
+        {
+            var version = await GetListVersionAsync();
+
+            await _cache.SetAsync(
+                $"{prefix}:list:version",
+                version + 1
+            );
         }
     }
 }

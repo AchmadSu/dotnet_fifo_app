@@ -11,5 +11,7 @@ namespace FifoApi.Interface.CacheInterface
         Task InvalidateDetailAsync(int id);
         Task InvalidateSKUAsync(string sku);
         Task InvalidateAllAsync(int id, string sku);
+        Task<int> GetListVersionAsync();
+        Task IncrementListVersionAsync();
     }
 }

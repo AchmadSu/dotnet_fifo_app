@@ -10,7 +10,9 @@ using FifoApi.Extensions;
 using FifoApi.Helpers;
 using FifoApi.Helpers.SaleHelper;
 using FifoApi.Infrastructure.Cache;
+using FifoApi.Infrastructure.Messaging;
 using FifoApi.Interface.CacheInterface;
+using FifoApi.Interface.KafkaInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;
 using FifoApi.Interface.StockInterface;
@@ -31,7 +33,7 @@ namespace FifoApi.Service.SaleService
         private readonly ApplicationDBContext _context;
         private readonly ICacheService _cache;
         private const string cachePrefix = CacheKeys.Sales;
-        private readonly ISaleCacheHelper _saleCacheHelper;
+        private readonly IKafkaProducer _kafkaProducer;
         private readonly ILogger<SaleService> _logger;
         public SaleService(
             ISaleRepository saleRepo,
@@ -40,7 +42,7 @@ namespace FifoApi.Service.SaleService
             IStockMovementRepository stockMovementRepo,
             ApplicationDBContext context,
             ICacheService cache,
-            ISaleCacheHelper saleCacheHelper,
+            IKafkaProducer kafkaProducer,
             ILogger<SaleService> logger
         )
         {
@@ -50,7 +52,7 @@ namespace FifoApi.Service.SaleService
             _stockMovementRepo = stockMovementRepo;
             _context = context;
             _cache = cache;
-            _saleCacheHelper = saleCacheHelper;
+            _kafkaProducer = kafkaProducer;
             _logger = logger;
         }
         public async Task<OperationResult<SaleDTO>> CreateSaleAsync(CreateSaleDTO saleDTO)
@@ -117,23 +119,23 @@ namespace FifoApi.Service.SaleService
                     var createdSale = await _saleRepo.CreateSaleAsync(saleDTO.ToSaleFromCreate(invoice, saleItems));
                     if (createdSale == null)
                     {
-                        return OperationResult<SaleDTO>.BadRequest("Failed to create sales data");
+                        throw new Exception("Failed to create sale");
                     }
 
                     var isSuccessAdjustStock = await _stockRepo.AdjustListStockQtyAsync(adjustQtyList.ToAdjustListStockQtyDTO(), "-");
                     if (!isSuccessAdjustStock)
                     {
-                        return OperationResult<SaleDTO>.BadRequest("Failed to adjust stocks");
+                        throw new Exception($"Failed to adjust stocks on sale: {createdSale.InvoiceNo}");
                     }
 
                     var stockMovements = createdSale.ToStockMovements(adjustQtyList);
-                    var createdStockMovements = await _stockMovementRepo.CreateStockMovementsAsync(stockMovements);
-                    if (createdStockMovements == null)
-                    {
-                        return OperationResult<SaleDTO>.BadRequest("Failed to create stock movements");
-                    }
 
-                    await _saleCacheHelper.InvalidateListAsync();
+                    await _kafkaProducer.ProduceAsync(
+                        KafkaTopics.SaleCreated,
+                        createdSale.ToSaleCreatedEvent(
+                            stockMovements
+                        )
+                    );
 
                     return OperationResult<SaleDTO>.Ok(createdSale.ToSaleDTO());
                 },

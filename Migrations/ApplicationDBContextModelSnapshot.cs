@@ -111,6 +111,10 @@ namespace FifoApi.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SKU")
@@ -143,6 +147,10 @@ namespace FifoApi.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -180,6 +188,10 @@ namespace FifoApi.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -219,6 +231,10 @@ namespace FifoApi.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
@@ -255,11 +271,18 @@ namespace FifoApi.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SaleItemId");
 
                     b.HasIndex("StockBatchId");
+
+                    b.HasIndex("SaleItemId", "StockBatchId")
+                        .IsUnique();
 
                     b.ToTable("StockMovements");
                 });
@@ -292,13 +315,13 @@ namespace FifoApi.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "2fd6b16d-7713-4df2-9137-c614791570c6",
+                            Id = "949b0504-5484-4cf0-97c7-688c3b753b31",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "1e8180d0-898c-44f7-848f-c50d9d54669d",
+                            Id = "ebf0d42b-1d8b-46a2-8b20-ddc7c18b502d",
                             Name = "User",
                             NormalizedName = "USER"
                         });

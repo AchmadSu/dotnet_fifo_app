@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs.SaleDTO;
+using FifoApi.Infrastructure.Messaging.Events.Sales;
 using FifoApi.Models;
 
 namespace FifoApi.Mappers.SaleMapper
@@ -68,6 +69,22 @@ namespace FifoApi.Mappers.SaleMapper
                 TotalAmount = sale.TotalAmount,
                 TotalQty = sale.SaleItems.Sum(s => s.Qty),
                 SaleItems = sale.SaleItems.Select(i => i.ToSaleItemDTO()).ToList()
+            };
+        }
+
+        public static SaleCreatedEvent ToSaleCreatedEvent(
+            this Sale sale,
+            List<StockMovement> stockMovements
+        )
+        {
+            return new SaleCreatedEvent
+            {
+                Id = sale.Id,
+                InvoiceNo = sale.InvoiceNo,
+                SaleDate = sale.SaleDate,
+                TotalAmount = sale.TotalAmount,
+                TotalQty = sale.SaleItems.Sum(s => s.Qty),
+                Movements = stockMovements
             };
         }
     }

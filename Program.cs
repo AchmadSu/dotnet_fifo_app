@@ -4,7 +4,9 @@ using FifoApi.DTOs;
 using FifoApi.Extensions.Controllers;
 using FifoApi.Infrastructure.Cache.Products;
 using FifoApi.Infrastructure.Cache.Sales;
+using FifoApi.Infrastructure.Messaging;
 using FifoApi.Interface.CacheInterface;
+using FifoApi.Interface.KafkaInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Interface.SaleInterface;
 using FifoApi.Interface.StockInterface;
@@ -153,8 +155,10 @@ builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IProductCacheHelper, ProductCacheHelper>();
 builder.Services.AddScoped<ISaleCacheHelper, SaleCacheHelper>();
+builder.Services.AddScoped<IKafkaProducer, KafkaProducer>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddHostedService<KafkaCustomerService>();
 
 var app = builder.Build();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FifoApi.DTOs.ProductDTO;
+using FifoApi.Infrastructure.Messaging.Events.Products;
 using FifoApi.Mappers.StockMapper;
 using FifoApi.Models;
 
@@ -37,6 +38,26 @@ namespace FifoApi.Mappers.ProductMapper
                 SKU = product.SKU,
                 Name = product.Name,
                 StockBatches = product.StockBatches.Select(s => s.ToStockDTO()).ToList()
+            };
+        }
+
+        public static ProductCreatedEvent ToProductCreatedEvent(this Product product)
+        {
+            return new ProductCreatedEvent
+            {
+                Id = product.Id,
+                SKU = product.SKU,
+                Name = product.Name,
+            };
+        }
+
+        public static ProductUpdatedEvent ToProductUpdatedEvent(this Product product)
+        {
+            return new ProductUpdatedEvent
+            {
+                Id = product.Id,
+                SKU = product.SKU,
+                Name = product.Name,
             };
         }
     }

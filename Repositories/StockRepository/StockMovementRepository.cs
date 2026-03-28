@@ -6,6 +6,7 @@ using FifoApi.Data;
 using FifoApi.Helpers.StockHelper;
 using FifoApi.Interface.StockInterface;
 using FifoApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FifoApi.Repositories.StockRepository
 {
@@ -26,6 +27,12 @@ namespace FifoApi.Repositories.StockRepository
         public Task<List<StockMovement>> DeleteStockMovementListAsync(List<int> saleItemid)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> ExistsBySaleIdAsync(int SaleId)
+        {
+            return await _context.StockMovements
+                .AnyAsync(s => s.SaleItem.SaleId == SaleId);
         }
 
         public Task<IQueryable<StockMovement>> GetAllStockMovementAsync(int stockId, StockMovementQueryObject query)

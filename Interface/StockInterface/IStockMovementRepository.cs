@@ -13,5 +13,6 @@ namespace FifoApi.Interface.StockInterface
         Task<StockMovement?> GetStockMovementByIdAsync(int id);
         Task<List<StockMovement>> CreateStockMovementsAsync(List<StockMovement> stockMovements);
         Task<List<StockMovement>> DeleteStockMovementListAsync(List<int> saleItemid);
+        Task<bool> ExistsBySaleIdAsync(int SaleId);
     }
 }

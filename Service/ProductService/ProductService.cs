@@ -8,7 +8,10 @@ using FifoApi.Extensions;
 using FifoApi.Helpers;
 using FifoApi.Helpers.ProductHelper;
 using FifoApi.Infrastructure.Cache;
+using FifoApi.Infrastructure.Messaging;
+using FifoApi.Infrastructure.Messaging.Events.Products;
 using FifoApi.Interface.CacheInterface;
+using FifoApi.Interface.KafkaInterface;
 using FifoApi.Interface.ProductInterface;
 using FifoApi.Mappers.Paginate;
 using FifoApi.Mappers.ProductMapper;
@@ -19,19 +22,19 @@ namespace FifoApi.Service.ProductService
     {
         private readonly IProductRepository _productRepo;
         private readonly ICacheService _cache;
-        private readonly IProductCacheHelper _productCacheHelper;
         private const string cachePrefix = CacheKeys.Products;
+        private readonly IKafkaProducer _kafkaProducer;
         private readonly ILogger<ProductService> _logger;
         public ProductService(
             IProductRepository productRepo,
             ICacheService cache,
-            IProductCacheHelper productCacheHelper,
+            IKafkaProducer kafkaProducer,
             ILogger<ProductService> logger
         )
         {
             _productRepo = productRepo;
             _cache = cache;
-            _productCacheHelper = productCacheHelper;
+            _kafkaProducer = kafkaProducer;
             _logger = logger;
         }
         public async Task<OperationResult<ProductDTO>> CreateAsync(CreateProductDTO productDTO)
@@ -57,7 +60,10 @@ namespace FifoApi.Service.ProductService
 
                 var createdProduct = await _productRepo.CreateProductAsync(productDTO.ToProductFromCreateDTO(sku));
 
-                await _productCacheHelper.InvalidateListAsync();
+                await _kafkaProducer.ProduceAsync(
+                    KafkaTopics.ProductCreated,
+                    createdProduct.ToProductCreatedEvent()
+                );
 
                 return OperationResult<ProductDTO>.Ok(
                     createdProduct.ToProductDTO()
@@ -189,7 +195,10 @@ namespace FifoApi.Service.ProductService
                     return OperationResult<ProductDTO?>.BadRequest("Product to update not found!");
                 }
 
-                await _productCacheHelper.InvalidateAllAsync(id, StringHelper.NormalizeSku(updateProduct.SKU));
+                await _kafkaProducer.ProduceAsync(
+                    KafkaTopics.ProductUpdated,
+                    updateProduct
+                );
 
                 return OperationResult<ProductDTO?>.Ok(
                     updateProduct.ToProductDTO()

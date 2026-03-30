@@ -8,6 +8,7 @@ using FifoApi.Infrastructure.Messaging.Events.Products;
 using FifoApi.Infrastructure.Messaging.Events.Sales;
 using FifoApi.Infrastructure.Messaging.Events.Stocks;
 using FifoApi.Interface.CacheInterface;
+using FifoApi.Interface.KafkaInterface;
 using FifoApi.Interface.StockInterface;
 using FifoApi.Models;
 
@@ -95,88 +96,36 @@ namespace FifoApi.Infrastructure.Messaging
 
         private async Task HandleMessage(string topic, string payload)
         {
-            switch (topic)
-            {
-                case KafkaTopics.ProductCreated:
-                    await HandleEventAsync<ProductCreatedEvent>(payload, async evt =>
-                    {
-                        if (evt == null) return;
+            _logger.LogInformation(
+                "Kafka event received. Topic: {Topic}, Payload: {Payload}",
+                topic,
+                payload
+            );
 
-                        using var scope = _scopeFactory.CreateScope();
-                        var helper = scope.ServiceProvider
-                            .GetRequiredService<IProductCacheHelper>();
+            using var scope = _scopeFactory.CreateScope();
 
-                        await helper.IncrementListVersionAsync();
-                        await helper.InvalidateListAsync();
-                    });
-                    break;
+            var dispatcher = scope.ServiceProvider
+                .GetRequiredService<KafkaMessageDispatcher>();
 
-                case KafkaTopics.ProductUpdated:
-                    await HandleEventAsync<ProductUpdatedEvent>(payload, async evt =>
-                    {
-                        if (evt == null) return;
-
-                        using var scope = _scopeFactory.CreateScope();
-                        var helper = scope.ServiceProvider
-                            .GetRequiredService<IProductCacheHelper>();
-
-                        await helper.IncrementListVersionAsync();
-                        await helper.InvalidateAllAsync(evt.Id, evt.SKU);
-                    });
-                    break;
-
-                case KafkaTopics.SaleCreated:
-                    await HandleEventAsync<SaleCreatedEvent>(payload, async evt =>
-                    {
-                        if (evt == null) return;
-
-                        using var scope = _scopeFactory.CreateScope();
-
-                        var repo = scope.ServiceProvider
-                            .GetRequiredService<IStockMovementRepository>();
-
-                        var saleCache = scope.ServiceProvider
-                            .GetRequiredService<ISaleCacheHelper>();
-
-                        var exists = await repo.ExistsBySaleIdAsync(evt.Id);
-                        if (exists) return;
-
-                        await repo.CreateStockMovementsAsync(evt.Movements);
-                        await saleCache.InvalidateListAsync();
-                    });
-                    break;
-
-                case KafkaTopics.StockUpdated:
-                    await HandleEventAsync<StockUpdatedEvent>(payload);
-                    break;
-
-                case KafkaTopics.StockMovementCreated:
-                    await HandleEventAsync<StockMovementCreatedEvent>(payload);
-                    break;
-
-                default:
-                    _logger.LogWarning("No handler for topic {Topic}", topic);
-                    break;
-            }
-        }
-
-        private async Task HandleEventAsync<T>(
-            string payload,
-            Func<T?, Task>? action = null
-        )
-        {
             try
             {
-                var data = JsonSerializer.Deserialize<T>(payload);
+                await dispatcher.DispatchAsync(topic, payload);
 
-                _logger.LogInformation("Event received: {@Event}", data);
-
-                if (action != null)
-                    await action(data);
+                _logger.LogInformation(
+                    "Kafka event processed successfully. Topic: {Topic}",
+                    topic
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process event");
+                _logger.LogError(
+                    ex,
+                    "Kafka event processing failed. Topic: {Topic}, Payload: {Payload}",
+                    topic,
+                    payload
+                );
+
+                throw;
             }
         }
     }

@@ -29,7 +29,6 @@ namespace FifoApi.Service.SaleService
         private readonly ISaleRepository _saleRepo;
         private readonly IProductRepository _productRepo;
         private readonly IStockRepository _stockRepo;
-        private readonly IStockMovementRepository _stockMovementRepo;
         private readonly ApplicationDBContext _context;
         private readonly ICacheService _cache;
         private const string cachePrefix = CacheKeys.Sales;
@@ -39,7 +38,6 @@ namespace FifoApi.Service.SaleService
             ISaleRepository saleRepo,
             IProductRepository productRepo,
             IStockRepository stockRepo,
-            IStockMovementRepository stockMovementRepo,
             ApplicationDBContext context,
             ICacheService cache,
             IKafkaProducer kafkaProducer,
@@ -49,7 +47,6 @@ namespace FifoApi.Service.SaleService
             _saleRepo = saleRepo;
             _productRepo = productRepo;
             _stockRepo = stockRepo;
-            _stockMovementRepo = stockMovementRepo;
             _context = context;
             _cache = cache;
             _kafkaProducer = kafkaProducer;
@@ -116,17 +113,10 @@ namespace FifoApi.Service.SaleService
                         sequenceNumber: nextSequence
                     );
 
-                    var createdSale = await _saleRepo.CreateSaleAsync(saleDTO.ToSaleFromCreate(invoice, saleItems));
-                    if (createdSale == null)
-                    {
-                        throw new Exception("Failed to create sale");
-                    }
-
+                    var createdSale = await _saleRepo.CreateSaleAsync(saleDTO.ToSaleFromCreate(invoice, saleItems)) ?? throw new Exception("Failed to create sale");
                     var isSuccessAdjustStock = await _stockRepo.AdjustListStockQtyAsync(adjustQtyList.ToAdjustListStockQtyDTO(), "-");
                     if (!isSuccessAdjustStock)
-                    {
                         throw new Exception($"Failed to adjust stocks on sale: {createdSale.InvoiceNo}");
-                    }
 
                     var stockMovements = createdSale.ToStockMovements(adjustQtyList);
 
